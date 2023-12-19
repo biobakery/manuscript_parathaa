@@ -9,83 +9,171 @@ workflow = Workflow(
     description="Analysis Template"     #Update the description as needed
     ) 
 
-# Setting additional custom arguments for workflow - run.py
+
+
+# Add workflow arguments
 workflow.add_argument(
-    name="lines", 
-    desc="Number of lines to trim [default: 10]", 
-    default="10")
+    name="paraDir",
+    desc="PATH to parathaa github repo"
+)
 
 workflow.add_argument(
-    name="metadata", 
-    desc="Metadata for performing analysis [default: input/metadata.tsv]", 
-    default="input/metadata.tsv")
+    name="threads",
+    desc="Number of threads",
+    default=1
+)
+
+
 
 # Parsing the workflow arguments
 args = workflow.parse_args()
 
-#Loading the config setting
-args.config = 'etc/config.ini'
+#add target files
+silva_seed_db="input/silva.seed_v138_1.align"
+silva_seed_tax="input/silva.seed_v138_1.tax"
+silva_seed_ng="input/silva.seed_v138_1.ng.fasta"
+dada2_spec_assign="input/silva_species_assignment_v138.1.fa" #what is this used for????
+silva_taxonomy_file="input/taxmap_slv_ssu_ref_138.1.txt"
+dada2_seed_db="input/20231215.silva.seed_v138_1.ng.dada.fasta"
+dada2_seed_db_sp="input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
+syn_IDs="input/subsampleIDs_SeedGenera.txt"
+silva_full_db="input/SILVA_138.1_SSURef_tax_silva.fasta"
+silva_full_db_DNA="input/SILVA_138.1_SSURef_tax_silva.DNA.fasta"
+FL_syn_reads="input/SILVAsubsample_SeedGenera.fasta"
+V4V5_syn_reads="input/SILVAsubsample_SeedGenera_V4V5.pcr.fasta"
+V1V2_syn_reads="input/SILVAsubsample_SeedGenera_V1V2.pcr.fasta"
+V1V2_db="input/SILVA_V1V2"
+V4V5_db="input/SILVA_V4V5"
+V1V2_assignments="output/V1V2_syn/"
+V4V5_assignments="output/V4V5_syn/"
 
 
-# AnADAMA2 example workflow.do
-workflow.do("ls /usr/bin/ | sort > [t:output/global_exe.txt]")        #Command 
-workflow.do("ls $HOME/.local/bin/ | sort > [t:output/local_exe.txt]") #Command 
 
-# Task0 sample python analysis module  - src/trim.py
+oligos_v4v5=os.path.join(args.paraDir, "input/primers/V4V5.oligos")
+oligos_v1v2=os.path.join(args.paraDir, "input/primers/V1V2.oligos")
+# Write workflow to download files
+
+## downlaod silva files
 workflow.add_task(
-    "src/trim.py --lines [args[0]] --output [targets[0]] --input "+args.input, #Command 
-    depends=[TrackedExecutable("src/trim.py")],                                #Tracking executable dependencies
-    targets=args.output,                                                       #Output target directory
-    args=[args.lines])                                                         #Additional arguments 
+    "wget https://mothur.s3.us-east-2.amazonaws.com/wiki/silva.seed_v138_1.tgz -P input/; tar -xf input/silva.seed_v138_1.tgz -C input/",
+    targets=[silva_seed_db, silva_seed_tax],
+    name="download silva data"
+)
 
-
-# Task1 sample python visualization module - src/plot.py
 workflow.add_task(
-    "src/plot.py --output [targets[0]] --input "+args.input,    #Command 
-    depends=[TrackedExecutable("src/plot.py")],                 #Tracking executable dependencies
-    targets=args.output)                                        #Output target directory
+    "wget https://zenodo.org/records/4587955/files/silva_species_assignment_v138.1.fa.gz?download=1 -P input/; mv input/silva_species_assignment_v138.1.fa.gz?download=1 input/silva_species_assignment_v138.1.fa.gz; gunzip input/silva_species_assignment_v138.1.fa.gz",
+    targets=dada2_spec_assign,
+    name="Download dada2 info"
+)
 
-
-# Task2 sample R module  - src/analysis_example.r
 workflow.add_task(
-    "src/analysis.R -o [targets[0]] -d "+args.metadata,     #Command 
-    depends=[TrackedExecutable("src/analysis.R")],          #Tracking executable dependencies
-    targets=args.output,                                    #Output target directory
-    args=[args.metadata])                                   #Additional arguments 
+    "wget https://www.arb-silva.de/fileadmin/silva_databases/release_138.1/Exports/taxonomy/taxmap_slv_ssu_ref_138.1.txt.gz -P input/; gunzip input/taxmap_slv_ssu_ref_138.1.txt.gz",
+    targets=silva_taxonomy_file,
+    name="download full silva taxonomy file"
+)
 
+workflow.add_task(
+   "wget https://www.arb-silva.de/fileadmin/silva_databases/release_138.1/Exports/SILVA_138.1_SSURef_tax_silva.fasta.gz -P input/; gunzip input/SILVA_138.1_SSURef_tax_silva.fasta.gz",
+   targets=silva_full_db,
+   name="download full silva database"
+)
 
-# Task3 add_task_group  - AnADAMA2 example to execute a task on multiple input files/dependencies
-multiple_input_files = glob(os.path.join(args.output, '*.txt')) #Initializing multiple input files 
-output_files = [os.path.join(args.output,'data',os.path.basename(files+"_backup")) for files in multiple_input_files]
-workflow.add_task_group(
-    "cp [depends[0]] [targets[0]]",                            #Command 
-    depends=[multiple_input_files],   #Tracking executable dependencies
-    targets=output_files)                                      #Output target directory
+#download pre-computed Databases
 
+workflow.add_task(
+    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V1V2.tar.gz -P input/; tar -xf input/SILVA_V1V2.tar.gz -C input/; rm input/SILVA_V1V2.tar.gz",
+    targets=V1V2_db,
+    name="download pre-computed V1V2 database"
+)
 
-# private python function definition 
-def remove_end_tabs_function(task):
-    with open(task.targets[0].name, 'w') as file_handle_out:
-        for line in open(task.depends[0].name):
-            file_handle_out.write(line.rstrip() + "\n")
+workflow.add_task(
+    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V4V5.tar.gz -P input/; tar -xf input/SILVA_V4V5.tar.gz -C input/; rm input/SILVA_V4V5.tar.gz",
+    targets=V4V5_db,
+    name="download pre-computed V4V5 database"
+)
+
+#Generate DADA2 files
+
+workflow.add_task(
+    "mothur '#degap.seqs(fasta=[args[0]])'",
+    args=silva_seed_db,
+    depends=silva_seed_db,
+    name="degapping input sequences",
+    targets=silva_seed_ng
+)
+
             
-            
-# Task4 add_task  - AnADAMA2 example to usage of python task function 
 workflow.add_task(
-    remove_end_tabs_function,                       #Calling the python function  
-    depends=args.input,                             #Tracking executable dependencies
-    targets=args.output+"/data/data.tsv.notabs",    #Target output
-    name="remove_end_tabs")
+    "Rscript src/create.seedDB.dada2.R -p [args[0]] -s [depends[0]] -t [depends[1]]",
+    args=args.paraDir,
+    depends=[silva_seed_ng, silva_taxonomy_file],
+    targets=[dada2_seed_db, dada2_seed_db_sp],
+    name="generating DADA2 silva.seed DB"
+)
+
+# Generate Synthetic reads
+
+workflow.add_task(
+   "Rscript src/Synthetic.Reads.R -p [args[0]] -s [depends[0]] -t [depends[1]]",
+   args=args.paraDir,
+   depends=[silva_seed_tax, silva_taxonomy_file],
+   targets=[syn_IDs],
+   name="generating synthetic read IDs"
+)
+
+#convert silva db from RNA to DNA
+workflow.add_task(
+   "sed '/^[^>]/s/U/T/g' [depends[0]] > [targets[0]]",
+   depends=[silva_full_db],
+   targets=silva_full_db_DNA,
+   name="Converting silva RNA DB to DNA" 
+)
+
+workflow.add_task(
+   "faSomeRecords [depends[0]] [depends[1]] [targets[0]]",
+   depends=[silva_full_db_DNA, syn_IDs],
+   targets=FL_syn_reads,
+   name="generating full length synthetic read file"
+)
 
 
-#Task5 Add the document to the workflow
-pdf_report=os.path.join(os.getcwd(),args.output,"pdfReport.pdf")
-workflow.add_document(
-    templates="doc/template.py",
-    targets=pdf_report,
-    vars={
-        "introduction_text": "Demo Title"
-    })
+#PCR syn reads
+workflow.add_task(
+   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/SILVAsubsample_SeedGenera.pcr.fasta [targets[0]]",
+   depends=FL_syn_reads,
+   args=oligos_v4v5,
+   targets=V4V5_syn_reads,
+   name="generating v4v5 synthetic reads"
+)
+
+workflow.add_task(
+   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/SILVAsubsample_SeedGenera.pcr.fasta [targets[0]]",
+   depends=FL_syn_reads,
+   args=oligos_v1v2,
+   targets=V1V2_syn_reads,
+   name="generating v1v2 synthetic reads"
+)
+
+#run parathaa on V1V2
+
+workflow.add_task(
+    "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [targets[0]] --threads [args[0]]",
+    depends=[V1V2_db, V1V2_syn_reads],
+    targets=V1V2_assignments,
+    args=args.threads,
+    name="Assigning taxonomy to V1V2 synthetic reads"
+)
+
+#run parathaa on V4V5
+
+workflow.add_task(
+    "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [targets[0]] --threads [args[0]]",
+    depends=[V4V5_db, V4V5_syn_reads],
+    targets=V4V5_assignments,
+    args=args.threads,
+    name="Assigning taxonomy to V4V5 synthetic reads"
+)
+
 
 # Run the workflow
 workflow.go()

@@ -1,9 +1,32 @@
-parathaaDir <- ("C:/Users/mshort/Documents/proj/parathaa/")
+####################################
+# Create Synthetic reads for benchmarking
+####################################
 
-source(file.path(parathaaDir, "src/SILVA.species.editor.dev.R"))
+
+require(docopt)
+
+'Usage:
+  Synthetic.Reads.R [-p <parathaa_PATH> -s <seed_taxonomy> -t <silva_taxonomy_file>]
+  
+  
+Options:
+  -p directory where parathaa github repo is cloned
+  -s seed_db_tax
+  -t assignments
+  ]' -> doc
+
+
+
+
+opts <- docopt(doc)
+
+
+parathaaDir <- (opts$p)
+
+source(file.path(parathaaDir, "parathaa/utility/SILVA.species.editor.dev.R"))
 
 ## Read in SILVA 138.1 taxonomy for subsetting
-inFileTaxdata <- "./input/taxmap_slv_ssu_ref_138.1.txt"
+inFileTaxdata <- opts$t
 
 taxdata <- read.table(inFileTaxdata , header=T, fill=TRUE,sep='\t', quote="")
 taxdata <- taxdata %>%
@@ -17,11 +40,11 @@ taxdata <- taxdata %>%
   separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";")
 
 ## Additional changes (getting rid of subspecies)
-taxdata <- SILVA.species.editor(taxdata, Task="find_cutoffs")
+taxdata <- SILVA.species.editor(taxdata)
 taxdata <- taxdata %>% filter(!is.na(Species))
 
 ## Read in seed db for exclusion
-inFileSeedDB <- "input/silva.seed_v138_1.tax"
+inFileSeedDB <- opts$s
 SeedTax <- read.table(inFileSeedDB , header=F, fill=TRUE,sep='\t')
 
 SeedTax <- SeedTax %>%
@@ -40,8 +63,6 @@ GenusCounts <- taxdata_seedless %>% dplyr::count(Genus)
 GenusCounts$subsetN <- pmin(pmax(20, ceiling(GenusCounts$n*0.01)), GenusCounts$n)
 ## Include only genera from seed for now
 GenusCounts <- GenusCounts %>% filter(Genus %in% unique(SeedTax$Genus))
-dim(GenusCounts)
-sum(GenusCounts$subsetN)
 
 
 library(purrr)
@@ -51,7 +72,7 @@ subsample <- taxdata_seedless %>%
   map2_dfr(GenusCounts$subsetN, ~ slice_sample(.x, n = .y))
 
 ## Print IDs to file
-write_lines(subsample$AccID, file="./input/subsampleIDs_SeedGeneraV4V5.txt")
+readr::write_lines(subsample$AccID, file="input/subsampleIDs_SeedGenera.txt")
 
 ##### NOTE: The following should be put into a script:
 
