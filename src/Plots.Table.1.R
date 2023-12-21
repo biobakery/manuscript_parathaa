@@ -4,9 +4,7 @@
 require(docopt)
 
 'Usage:
-  Plots.Table.1.R [-p <parathaa_PATH> --dada_db <dada2_db> --dada_db_sp <dada2_db_sp> -t <input taxonomy> -o <output> 
-  --paraAssignV4V5 <V4V5 taxonomy file> --paraAssignV1V2 <V1V2 taxonomy file> --queryV4V5 <V4V5 seqs> 
-  --queryV1V2 <V1V2 seqs>]
+  Plots.Table.1.R [-p <parathaa_PATH> --dada_db <dada2_db> --dada_db_sp <dada2_db_sp> -t <input_taxonomy> -o <output> --paraAssignV4V5 <V4V5_taxonomy_file> --paraAssignV1V2 <V1V2_taxonomy_file> --queryV4V5 <V4V5 seqs> --queryV1V2 <V1V2 seqs>]
   
   
 Options:
