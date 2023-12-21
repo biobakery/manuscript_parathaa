@@ -1,7 +1,28 @@
 ## Compare taxonomies from DADA2 vs PARATHAA
 
-setwd("C:/Users/mshort/Documents/proj/manuscript_parathaa/")
-parathaaDir <- ("C:/Users/mshort/Documents/proj/parathaa/")
+
+require(docopt)
+
+'Usage:
+  Plots.Table.1.R [-p <parathaa_PATH> --dada_db <dada2_db> --dada_db_sp <dada2_db_sp> -t <input taxonomy -o output]
+  
+  
+Options:
+  -p directory where parathaa github repo is cloned
+  --dada_db location of DADA2 db
+  --dada_db_sp location of DADA2 species db
+  --paraAssignV4V5 parathaa assignments for V4V5
+  --paraAssignV1V2 parathaa assignments for V1V2
+  --queryV4V5 query sequence file for V4V5
+  --queryV1V2 query sequence file for V1V2
+  -t input taxonomy
+  -o output
+  ]' -> doc
+
+
+opts <- docopt(doc)
+
+parathaaDir <- (opts$p)
 
 library(phyloseq) 
 library(dplyr) 
@@ -12,10 +33,11 @@ library(dada2)
 library(ggplot2)
 library(castor)
 library(phytools)
-library(beepr)
-library(flextable)
+#library(flextable)
 suppressPackageStartupMessages(library(seqinr))
 source(file.path(parathaaDir, "parathaa/utility/SILVA.species.editor.dev.R"))
+
+##this should be fine I think because we won't be installing the manuscript tools.
 source("src/performance.table.R")
 
 
@@ -28,8 +50,9 @@ source("src/performance.table.R")
 
 #DADAdb <- "input/20230111.silva.seed_v138_1.ng.dada.fasta"
 #DADAdb.sp <- "input/20231130_silva.seed_v138_1.ng.dada.sp.fasta"
-DADAdb <- "input/20231215.silva.seed_v138_1.ng.dada.fasta"
-DADAdb.sp <- "input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
+DADAdb <- opts$dada_db
+DADAdb.sp <- opts$dada_db_sp
+
 
 
 ## Define Function ##
@@ -151,7 +174,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   
   #Get taxdata from SILVA:
 
-  inFileTaxdata <- "./input/taxmap_slv_ssu_ref_138.1.txt"
+  inFileTaxdata <- opts$t
   
   taxdata <- read.table(inFileTaxdata , header=T, fill=TRUE,sep='\t', quote="")
   taxdata <- taxdata %>%
@@ -383,70 +406,68 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
 }
 
 ##### CALL FUNCTION ######
-run.synthetic.data(parathaaFile = file.path(parathaaDir, "output/20231203_kindom_fix_synth/taxonomic_assignments_2e12.tsv"), 
-                   sequenceFile = "input/SILVAsubsample_SeedGenera_V4V5.pcr.fasta",
+run.synthetic.data(parathaaFile = opts$paraAssignV4V5, 
+                   sequenceFile = opts$queryV4V5,
                    regionName = "V4V5", 
-                   outputDir="output/Figures/synth_mult_arc",
+                   outputDir=paste(opts$o, "/Figures/synth_mult_arc/", sep=""),
                    dadaAllowMult = T)
 
-run.synthetic.data(parathaaFile = file.path(parathaaDir, "output/20231204_Kingdom_V1V2/taxonomic_assignments_2e12.tsv"), 
+run.synthetic.data(parathaaFile = opts$paraAssignV1V2, 
                    sequenceFile = "input/SILVAsubsample_SeedGenera_V1V2.pcr.fasta", 
                    regionName = "V1V2", 
-                   outputDir="output/Figures/synth_mult_arc",
+                   outputDir=paste(opts$o, "/Figures/synth_mult_arc", sep=""),
                    dadaAllowMult = T)
 
 run.synthetic.data(parathaaFile = file.path(parathaaDir,"output/20231203_kindom_fix_synth/taxonomic_assignments_2e12.tsv"), 
                    sequenceFile = "input/SILVAsubsample_SeedGenera_V4V5.pcr.fasta",
                    regionName = "V4V5", 
-                   outputDir="output/Figures/synth_nomult_arc",
+                   outputDir=paste(opts$o, "/Figures/synth_nomult_arc", sep=""),
                    dadaAllowMult = F)
 
 run.synthetic.data(parathaaFile = file.path(parathaaDir,"output/20231204_Kingdom_V1V2/taxonomic_assignments_2e12.tsv"), 
                    sequenceFile = "input/SILVAsubsample_SeedGenera_V1V2.pcr.fasta", 
                    regionName = "V1V2", 
-                   outputDir="output/Figures/synth_nomult_arc",
+                   outputDir=paste(opts$o, "/Figures/synth_nomult_arc", sep=""),
                    dadaAllowMult = F)
 
 
 ##### MAKE NICE-LOOKING OUTPUT TABLE #####
-
-### Dada2 without AllowMultiple ###
-V4V5.tab <- read.table("output/Figures/synth_nomult_arc/V4V5_Species_performance.tsv", row.names=1, header = T, sep='\t')
-V1V2.tab <- read.table("output/Figures/synth_nomult_arc/V1V2_Species_performance.tsv", row.names=1, header=T, sep='\t')
-
-V4V5.genus.tab <- read.table("output/Figures/synth_nomult_arc/V4V5_Genus_performance.tsv", row.names=1, header = T, sep='\t')
-V1V2.genus.tab <- read.table("output/Figures/synth_nomult_arc/V1V2_Genus_performance.tsv", row.names=1, header=T, sep='\t')
-
-
-summary.tab1 <- cbind(rownames(V1V2.tab), V1V2.tab, V4V5.tab, V1V2.genus.tab, V4V5.genus.tab)
-colnames(summary.tab1) <- c("Metric", "Species.V1V2.Parathaa", "Species.V1V2.DADA2", 
-                            "Species.V4V5.Parathaa", "Species.V4V5.DADA2", 
-                            "Genus.V1V2.Parathaa", "Genus.V1V2.DADA2", 
-                            "Genus.V4V5.Parathaa", "Genus.V4V5.DADA2")
-
-ft1 <- flextable(summary.tab1) |>
-  separate_header() 
-border <- fp_border_default()
-ft1 <- vline(ft1, j = c('Metric','Species.V4V5.DADA2'), border = border, part = "all")
-ft1<- hline(ft1, i=4)
-ft1
-save_as_docx(ft1,  path = "output/Figures/synth_nomult_arc/Synth_performance.docx")
-
-
-### Dada2 with AllowMultiplt ###
-V4V5.multdada <- read.table("output/Figures/synth_mult_arc/V4V5_Species_performance.tsv", row.names=1, header=T, sep='\t')
-V1V2.multdada <- read.table("output/Figures/synth_mult_arc/V1V2_Species_performance.tsv", row.names=1, header=T, sep='\t')
-
-summary.tab2 <- cbind(rownames(V1V2.multdada), V1V2.multdada, V4V5.multdada)
-colnames(summary.tab2) <- c("Metric", "V1V2.Parathaa", "V1V2.DADA2", "V4V5.Parathaa", "V4V5.DADA2")
-
-ft2 <- flextable(summary.tab2) |>
-  separate_header() 
-border <- fp_border_default()
-ft2 <- vline(ft2, j = c('Metric','V1V2.DADA2'), border = border, part = "all")
-ft2<- hline(ft2, i=4)
-ft2
-
-save_as_docx(ft2,  path = "output/Figures/synth_mult_arc/Synth_performance_mult.docx")
-
-beep(8)
+# Below code will make microsoft word tables. Currently not run in the manuscript workflow. 
+# ### Dada2 without AllowMultiple ###
+# V4V5.tab <- read.table("output/Figures/synth_nomult_arc/V4V5_Species_performance.tsv", row.names=1, header = T, sep='\t')
+# V1V2.tab <- read.table("output/Figures/synth_nomult_arc/V1V2_Species_performance.tsv", row.names=1, header=T, sep='\t')
+# 
+# V4V5.genus.tab <- read.table("output/Figures/synth_nomult_arc/V4V5_Genus_performance.tsv", row.names=1, header = T, sep='\t')
+# V1V2.genus.tab <- read.table("output/Figures/synth_nomult_arc/V1V2_Genus_performance.tsv", row.names=1, header=T, sep='\t')
+# 
+# 
+# summary.tab1 <- cbind(rownames(V1V2.tab), V1V2.tab, V4V5.tab, V1V2.genus.tab, V4V5.genus.tab)
+# colnames(summary.tab1) <- c("Metric", "Species.V1V2.Parathaa", "Species.V1V2.DADA2", 
+#                             "Species.V4V5.Parathaa", "Species.V4V5.DADA2", 
+#                             "Genus.V1V2.Parathaa", "Genus.V1V2.DADA2", 
+#                             "Genus.V4V5.Parathaa", "Genus.V4V5.DADA2")
+# 
+# ft1 <- flextable(summary.tab1) |>
+#   separate_header() 
+# border <- fp_border_default()
+# ft1 <- vline(ft1, j = c('Metric','Species.V4V5.DADA2'), border = border, part = "all")
+# ft1<- hline(ft1, i=4)
+# ft1
+# save_as_docx(ft1,  path = "output/Figures/synth_nomult_arc/Synth_performance.docx")
+# 
+# 
+# ### Dada2 with AllowMultiplt ###
+# V4V5.multdada <- read.table("output/Figures/synth_mult_arc/V4V5_Species_performance.tsv", row.names=1, header=T, sep='\t')
+# V1V2.multdada <- read.table("output/Figures/synth_mult_arc/V1V2_Species_performance.tsv", row.names=1, header=T, sep='\t')
+# 
+# summary.tab2 <- cbind(rownames(V1V2.multdada), V1V2.multdada, V4V5.multdada)
+# colnames(summary.tab2) <- c("Metric", "V1V2.Parathaa", "V1V2.DADA2", "V4V5.Parathaa", "V4V5.DADA2")
+# 
+# ft2 <- flextable(summary.tab2) |>
+#   separate_header() 
+# border <- fp_border_default()
+# ft2 <- vline(ft2, j = c('Metric','V1V2.DADA2'), border = border, part = "all")
+# ft2<- hline(ft2, i=4)
+# ft2
+# 
+# save_as_docx(ft2,  path = "output/Figures/synth_mult_arc/Synth_performance_mult.docx")
