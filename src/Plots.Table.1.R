@@ -418,18 +418,6 @@ run.synthetic.data(parathaaFile = opts$paraAssignV1V2,
                    outputDir=paste(opts$o, "/Figures/synth_mult_arc", sep=""),
                    dadaAllowMult = T)
 
-run.synthetic.data(parathaaFile = file.path(parathaaDir,"output/20231203_kindom_fix_synth/taxonomic_assignments_2e12.tsv"), 
-                   sequenceFile = "input/SILVAsubsample_SeedGenera_V4V5.pcr.fasta",
-                   regionName = "V4V5", 
-                   outputDir=paste(opts$o, "/Figures/synth_nomult_arc", sep=""),
-                   dadaAllowMult = F)
-
-run.synthetic.data(parathaaFile = file.path(parathaaDir,"output/20231204_Kingdom_V1V2/taxonomic_assignments_2e12.tsv"), 
-                   sequenceFile = "input/SILVAsubsample_SeedGenera_V1V2.pcr.fasta", 
-                   regionName = "V1V2", 
-                   outputDir=paste(opts$o, "/Figures/synth_nomult_arc", sep=""),
-                   dadaAllowMult = F)
-
 
 ##### MAKE NICE-LOOKING OUTPUT TABLE #####
 # Below code will make microsoft word tables. Currently not run in the manuscript workflow. 
