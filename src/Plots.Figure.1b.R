@@ -26,6 +26,7 @@ opts <- docopt(doc)
 library(phytools)
 library(treeio)
 library(ggtree)
+library(dplyr)
 parathaaDir <- opts$p
 
 #V1V2
