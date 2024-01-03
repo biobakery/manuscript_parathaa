@@ -24,6 +24,7 @@ Options:
 opts <- docopt(doc)
 
 library(phytools)
+library(treeio)
 library(ggtree)
 parathaaDir <- opts$p
 
