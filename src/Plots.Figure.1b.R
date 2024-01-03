@@ -2,13 +2,34 @@
 #### Trees for Figure 1B ####
 #############################
 
+
+require(docopt)
+
+'Usage:
+  Plots.Figure.1b.R [-p <parathaa_PATH> --namedTreeV1V2 <named_tree_V1V2> --jV1V2 <jplace_V1V2> -o <output> --bV1V2 <benchmark_V1V2> --namedTreeV4V5 <named_tree_V4V5> --jV4V5 <jplace_V4V5> --bV4V5 <benchmark_V4V5>]
+  
+  
+Options:
+  -p directory where parathaa github repo is cloned
+  --namedTreeV1V2 the named tree RData file for V1V2
+  --jV1V2 the jplace file from V1V2 synthetic data testing
+  --bV1V2 benchmarking V1V2 results
+  --namedTreeV4V5 the named tree RData file for V1V2
+  --jV4V5 the jplace file from V1V2 synthetic data testing
+  --bV4V5 benchmarking V1V2 results
+  -o output
+  ]' -> doc
+
+
+opts <- docopt(doc)
+
 library(phytools)
 library(ggtree)
-parathaaDir <- ("C:/Users/mshort/Documents/proj/parathaa/")
+parathaaDir <- opts$p
 
 #V1V2
-load(file.path(parathaaDir, "output/20231204_Kingdom_V1V2/resultTree_bestThresholds.RData"))
-in.jplace <- read.jplace(file.path(parathaaDir, "output/20231204_Kingdom_V1V2/merged_sub.jplace"))
+load(opts$namedTreeV1V2)
+in.jplace <- read.jplace(opts$jV1V2)
 
 in.tree.data <- resultData$tax_bestcuts
 ##Add unique labels for interior nodes:
@@ -16,7 +37,7 @@ in.tree.data <- in.tree.data %>% mutate(label_new = ifelse(isTip, label, paste0(
   select(!label) %>%
   rename(label=label_new)
 
-load("output/Figures/synth_nomult_arc/V1V2_full_comparisons.RData")
+load(opts$bV1V2)
 nm <- "JOUE01000003.131499.133012"
 pind <- 2
 plotTree <- as.phylo(in.tree.data)
@@ -49,12 +70,12 @@ t1 <- ggtree(plotData3, aes(color=Species)) + geom_tippoint(size=5) + geom_nodep
   geom_treescale(fontsize = 6, linesize = 1, width = 0.005, x = .1) + theme(text=element_text(size=16)) +
   theme(legend.position = "bottom") + guides(color=guide_legend(nrow=3,byrow=TRUE)) + xlim(c(0,0.15)) + scale_color_manual(values=c("#F8766D", "#C49A00" ,"#53B400" ))
 t1
-ggsave(t1, filename = "output/Figures/Example2_v1v2.pdf", width = 8, height = 6, units="in")
+ggsave(t1, filename = paste0(opts$o, "/Figures/Figure1B_V1V2.pdf"), width = 8, height = 6, units="in")
 
 
 #V4V5
-load(file.path(parathaaDir, "output/20231203_kindom_fix_synth/resultTree_bestThresholds.RData"))
-in.jplace <- read.jplace(file.path(parathaaDir, "output/20231203_kindom_fix_synth/merged_sub.jplace"))
+load(opts$namedTreeV4V5)
+in.jplace <- read.jplace(opts$jV4V5)
 
 in.tree.data <- resultData$tax_bestcuts
 ##Add unique labels for interior nodes:
@@ -62,7 +83,7 @@ in.tree.data <- in.tree.data %>% mutate(label_new = ifelse(isTip, label, paste0(
   select(!label) %>%
   rename(label=label_new)
 
-load("output/Figures/synth_nomult_arc/V4V5_full_comparisons.RData")
+load(opts$bV4V5)
 nm <- "JOUE01000003.131499.133012"
 pind <- 1
 plotTree <- as.phylo(in.tree.data)
@@ -99,5 +120,4 @@ t1 <- ggtree(plotData3, aes(color=Species)) + geom_tippoint(size=5) + geom_nodep
                                                                                                                                        "Francisella noatunensis;\nFrancisella philomiragia" = "#00C094",
                                                                                                                                        "Legionella longbeachae"= "#00B6EB",
                                                                                                                                        "Legionella lytica" = "#A58AFF")) 
-t1
-ggsave(t1, filename = "output/Figures/Example2_v4v5.pdf", width = 8, height = 6, units="in")
+ggsave(t1, filename = paste0(opts$o, "/Figures/Figure1B_V4V5.pdf"), width = 8, height = 6, units="in")
