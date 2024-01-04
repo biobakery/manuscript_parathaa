@@ -1,4 +1,24 @@
-## Compare taxonomies from SILVA vs PARATHAA
+require(docopt)
+
+'Usage:
+  Plots.Figure.2.R [--dada_db <dada2_db> --dada_db_sp <dada2_db_sp> -o <output> --paraAssignV4V5 <V4V5_taxonomy_file> --paraAssignV1V2 <V1V2_taxonomy_file> --fastaV4V5 <V4V5 seqs> --fastaV1V2 <V1V2 seqs> --fastaV1V2uni <unique_V1V2_file> --V1V2Counts <v1v2_count_table> ]
+  
+  
+Options:
+  --dada_db location of DADA2 db
+  --dada_db_sp location of DADA2 species db
+  --fastaV4V5 V4V5 fasta file to assign taxonomy to
+  --fastaV1V2uni V1V2 fasta file to assign taxonomy to
+  --fastaV1V2 V1V2 fasta file
+  --V1V2Counts Counts file for V1V2
+  --paraAssignV1V2 parathaa assignments for V1V2
+  --paraAssignV4V5 parathaa assignments for V4V5
+  -o output
+  ]' -> doc
+
+
+opts <- docopt(doc)
+
 
 library(microbiome) # data analysis and visualisation
 library(phyloseq) # also the basis of data object. Data analysis and visualisation
@@ -19,19 +39,17 @@ library(stringr)
 library(tidyr)
 suppressPackageStartupMessages(library(seqinr))
 source_url("https://raw.githubusercontent.com/lrjoshi/FastaTabular/master/fasta_and_tabular.R")
-setwd("C:/Users/mshort/Documents/proj/manuscript_parathaa/")
+#setwd("C:/Users/mshort/Documents/proj/manuscript_parathaa/")
 
 ### DADA2 db ###
 #DADAdb <- "input/20230111.silva.seed_v138_1.ng.dada.fasta"
 #DADAdb.sp <- "input/20231130_silva.seed_v138_1.ng.dada.sp.fasta"
-DADAdb <- "input/20231215.silva.seed_v138_1.ng.dada.fasta"
-DADAdb.sp <- "input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
+DADAdb <- opts$dada_db
+DADAdb.sp <- opts$dada_db_sp
 
 ## Output for plots ##
-outputDir <- "output/Figures/mock_analysis/"
-dir.create(outputDir, recursive=T, showWarnings = F)
+outputDir <- opts$o
 
-### Include Spingo results? ###
 includeSpingo <- FALSE
 
 ## utility to refine species names (things that are the same but coded differently by Parathaa/Dada2/SPINGO):
@@ -53,9 +71,10 @@ refine_species_names <-function(x){
 
 ## Assign taxonomy with dada2 and seed SILVA db
 ## V4V5
-taxaV4V5 <- assignTaxonomy("./input/SRR3225703.fasta", 
+taxaV4V5 <- assignTaxonomy(opts$fastaV4V5, 
                            DADAdb,
                            multithread=TRUE)
+
 nChars <- grep("N", rownames(taxaV4V5))
 print(paste("Removing", length(nChars), "sequences with N bases"))
 taxaV4V5 <- taxaV4V5[-nChars,]
@@ -103,6 +122,7 @@ TAX_dada.V4V5 <- tax_table(taxmatV4V5)
 samp_dada.V4V5 <- data.frame(colnames(OTU_dada.V4V5), 
                              rep("DADA2", length(colnames(OTU_dada.V4V5))),
                              rep("V4V5", length(colnames(OTU_dada.V4V5))))
+
 colnames(samp_dada.V4V5) <- c("sampleID", "Taxonomy_type", "Region")
 rownames(samp_dada.V4V5) <- samp_dada.V4V5$sampleID
 str(samp_dada.V4V5)
@@ -113,7 +133,7 @@ ps1_dada.V4V5 <- phyloseq(OTU_dada.V4V5, TAX_dada.V4V5, SAMP_dada.V4V5)
 #save(ps1_dada.V4V5, file="output/Figures/mock_analysis/ps1_dada.V4V5.20231205.RData") 
 
 ## V1V2 -- in two parts for memory reasons
-taxaV1V2.dedup <- assignTaxonomy("./input/SRR3225701.unique.fasta", 
+taxaV1V2.dedup <- assignTaxonomy(opts$fastaV1V2uni, #"./input/SRR3225701.unique.fasta", 
                                  DADAdb,
                                  multithread=TRUE)
 nChars <- grep("N", rownames(taxaV1V2.dedup))
@@ -148,11 +168,14 @@ taxaV1V2.sp <- rbind(taxaV1V2.0.sp, taxaV1V2.1.sp, taxaV1V2.2.sp,
                          taxaV1V2.3.sp, taxaV1V2.4.sp, taxaV1V2.5.sp,
                          taxaV1V2.6.sp,taxaV1V2.7.sp, taxaV1V2.8.sp, taxaV1V2.9.sp)
 
-parsed = seqinr::read.fasta(file('./input/SRR3225701.unique.fasta'), as.string = TRUE,
+parsed = seqinr::read.fasta(file(opts$fastaV1V2uni), as.string = TRUE,
                             forceDNAtolower = FALSE, whole.header = FALSE)
+
+
 table = data.frame("ASV"=unlist(parsed), "query.name" = sapply(parsed, attr, 'name'), row.names=NULL)
 
-v1v2.counts <- read.table("input/SRR3225701.count_table", header = T)
+v1v2.counts <- read.table(opts$V1V2Counts, #"input/SRR3225701.count_table", 
+                          header = T)
 
 otutabV1V2 <- cbind(rownames(taxaV1V2.sp), taxaV1V2.sp)
 otutabV1V2 <- otutabV1V2 %>% as.data.frame() %>% dplyr::rename("ASV"="V1") 
@@ -193,22 +216,20 @@ SAMP_dada.V1V2 <- sample_data(samp_dada.V1V2)
 
 ps1_dada.V1V2 <- phyloseq(OTU_dada.V1V2, TAX_dada.V1V2, SAMP_dada.V1V2)
 
-#save(ps1_dada.V1V2, file="output/Figures/mock_analysis/ps1_dada.V1V2.20231205.RData")
-
-#load("output/Figures/mock_analysis/ps1_dada.V1V2.20231205.RData")
-#load("output/Figures/mock_analysis/ps1_dada.V4V5.20231205.RData")
 
 ## Read in parathaa data
 
-parathaData.V4V5 <- read.delim("./output/20231205_MockV4V5/taxonomic_assignments.tsv", 
+parathaData.V4V5 <- read.delim(opts$paraAssignV4V5, #"./output/20231205_MockV4V5/taxonomic_assignments.tsv", 
                                sep='\t', fill=T, stringsAsFactors = F, header=T)
 
 
 tax_paratha.V4V5 <- parathaData.V4V5 %>%
   dplyr::select(query.name, Kingdom, Phylum, Class, Order, Family, Genus, Species) 
 
-parsed = seqinr::read.fasta(file('./input/SRR3225703.fasta'), as.string = TRUE,
+parsed = seqinr::read.fasta(opts$fastaV4V5, #file('./input/SRR3225703.fasta'), 
+                            as.string = TRUE,
                             forceDNAtolower = FALSE, whole.header = FALSE)
+
 table = data.frame("ASV"=unlist(parsed), "query.name" = sapply(parsed, attr, 'name'), row.names=NULL)
 
 
@@ -239,10 +260,12 @@ SAMP_parathaa.V4V5 <- sample_data(samp_parathaa.V4V5)
 ps1_parathaa.V4V5 <- phyloseq(OTU_parathaa.V4V5, TAX_parathaa.V4V5, SAMP_parathaa.V4V5)
 
 ## V1V2 -- Note that these are run on a "unique" seqs file, so the counts table needs to be imported separately
+
 parathaData.V1V2 <- read.delim(
-  "./output/20231205_MockV1V2/taxonomic_assignments.tsv", 
+  opts$paraAssignV1V2, #"./output/20231205_MockV1V2/taxonomic_assignments.tsv", 
                                sep='\t', fill=T, stringsAsFactors = F, header=T)
-v1v2.counts <- read.table("input/SRR3225701.count_table", header = T)
+v1v2.counts <- read.table(opts$V1V2Counts, #"input/SRR3225701.count_table", 
+                          header = T)
 
 tax_paratha.V1V2 <- parathaData.V1V2 %>%
   dplyr::select(query.name, Kingdom, Phylum, Class, Order, Family, Genus, Species) 
@@ -252,8 +275,9 @@ tax_paratha.V1V2 <- parathaData.V1V2 %>%
 #Add in count table from dedup
 tax_paratha.V1V2 <- left_join(tax_paratha.V1V2, v1v2.counts, by=c("query.name"="Representative_Sequence"))
 
-parsed = seqinr::read.fasta(file('./input/SRR3225701.fasta'), as.string = TRUE,
+parsed = seqinr::read.fasta(opts$fastaV1V2, as.string = TRUE,
                             forceDNAtolower = FALSE, whole.header = FALSE)
+
 table = data.frame("ASV"=unlist(parsed), "query.name" = sapply(parsed, attr, 'name'), row.names=NULL)
 #View(tax_paratha)
 
@@ -262,6 +286,7 @@ tax_paratha.V1V2 <- left_join(tax_paratha.V1V2, table) %>%
 
 #tax_paratha.V1V2 <- refine_species_names(tax_paratha.V1V2)
 ## "refine_species_names" takes too long on this, so going to manually change C. beijerinckii:
+
 Cber <- tax_paratha.V1V2 %>% filter(Species == "Clostridium beijerinckii") %>% pull(query.name)
 tax_paratha.V1V2[which(tax_paratha.V1V2$query.name %in% Cber), "Species"] <- "Clostridium beijerinckii/diolis"
 
@@ -280,80 +305,81 @@ samp_parathaa.V1V2 <- data.frame(colnames(OTU_parathaa.V1V2),
                                  rep("V1V2", length(colnames(OTU_parathaa.V1V2))))
 colnames(samp_parathaa.V1V2) <- c("sampleID", "Taxonomy_type", "Region")
 rownames(samp_parathaa.V1V2) <- samp_parathaa.V1V2$sampleID
-str(samp_parathaa.V1V2)
 SAMP_parathaa.V1V2 <- sample_data(samp_parathaa.V1V2)
 
 ps1_parathaa.V1V2 <- phyloseq(OTU_parathaa.V1V2, TAX_parathaa.V1V2, SAMP_parathaa.V1V2)
 
 
+#this will be set to false... eventually this should be removed to clean up the code since we don't include this
+# anaylsis in the final paper...
 if(includeSpingo){
-## Read in SPINGO results
-spingo.V4V5 <- read.delim("./output/20221101_MiSeqV4V5Mock/SRR3225703.summary.txt",
-                          header = F, col.names = c("Species", "SRR3225703c"))
-spingo.V4V5$Species <- str_replace_all(spingo.V4V5$Species, "\\(", "")
-spingo.V4V5$SRR3225703c <- as.numeric(str_replace_all(spingo.V4V5$SRR3225703c, "\\)", ""))
-
-spingo.V4V5$Species <- str_replace_all(spingo.V4V5$Species, "_", " ")
-spingo.V4V5 <- refine_species_names(spingo.V4V5)
-
-taxmat <- as.matrix(spingo.V4V5$Species)
-rownames(taxmat) <- spingo.V4V5$Species 
-colnames(taxmat) <- "Species"
-TAX_spingo <- tax_table(taxmat)
-
-otumat <- as.matrix(spingo.V4V5$SRR3225703c)
-rownames(otumat) <- spingo.V4V5$Species
-colnames(otumat) <- "SRR3225703c"
-OTU_spingo <- otu_table(otumat, taxa_are_rows = TRUE)
-
-samp_spingo <- data.frame(colnames(OTU_spingo), rep("SPINGO", length(colnames(OTU_spingo))),
-                          rep("V4V5", length(colnames(OTU_spingo))))
-colnames(samp_spingo) <- c("sampleID", "Taxonomy_type", "Region")
-rownames(samp_spingo) <- samp_spingo$sampleID
-str(samp_spingo)
-SAMP_spingo <- sample_data(samp_spingo)
-
-ps1_spingo.V4V5 <- phyloseq(OTU_spingo, TAX_spingo, SAMP_spingo)
-
-spingo.V1V2 <- read.delim("./output/20221219_MiSeqV1V2Mock/SRR3225701.summary.txt",
-                          header = F, col.names = c("Species", "SRR3225701c"))
-spingo.V1V2$Species <- str_replace_all(spingo.V1V2$Species, "\\(", "")
-spingo.V1V2$SRR3225701c <- as.numeric(str_replace_all(spingo.V1V2$SRR3225701c, "\\)", ""))
-
-spingo.V1V2$Species <- str_replace_all(spingo.V1V2$Species, "_", " ")
-spingo.V1V2 <- refine_species_names(spingo.V1V2)
-
-taxmat <- as.matrix(spingo.V1V2$Species)
-rownames(taxmat) <- spingo.V1V2$Species 
-colnames(taxmat) <- "Species"
-TAX_spingo <- tax_table(taxmat)
-
-otumat <- as.matrix(spingo.V1V2$SRR3225701c)
-rownames(otumat) <- spingo.V1V2$Species
-colnames(otumat) <- "SRR3225701c"
-OTU_spingo <- otu_table(otumat, taxa_are_rows = TRUE)
-
-samp_spingo <- data.frame(colnames(OTU_spingo), rep("SPINGO", length(colnames(OTU_spingo))),
-                          rep("V1V2", length(colnames(OTU_spingo))))
-colnames(samp_spingo) <- c("sampleID", "Taxonomy_type", "Region")
-rownames(samp_spingo) <- samp_spingo$sampleID
-str(samp_spingo)
-SAMP_spingo <- sample_data(samp_spingo)
-
-ps1_spingo.V1V2 <- phyloseq(OTU_spingo, TAX_spingo, SAMP_spingo)
-
-#load("output/mock_analysis/ps1_dada.V1V2.RData") # precalculated
-
-
-
-ps1_all<- merge_phyloseq(ps1_dada.V1V2, ps1_dada.V4V5, 
-                         ps1_parathaa.V1V2, ps1_parathaa.V4V5, 
-                         ps1_spingo.V1V2, ps1_spingo.V4V5)
+  ## Read in SPINGO results
+  spingo.V4V5 <- read.delim("./output/20221101_MiSeqV4V5Mock/SRR3225703.summary.txt",
+                            header = F, col.names = c("Species", "SRR3225703c"))
+  spingo.V4V5$Species <- str_replace_all(spingo.V4V5$Species, "\\(", "")
+  spingo.V4V5$SRR3225703c <- as.numeric(str_replace_all(spingo.V4V5$SRR3225703c, "\\)", ""))
+  
+  spingo.V4V5$Species <- str_replace_all(spingo.V4V5$Species, "_", " ")
+  spingo.V4V5 <- refine_species_names(spingo.V4V5)
+  
+  taxmat <- as.matrix(spingo.V4V5$Species)
+  rownames(taxmat) <- spingo.V4V5$Species 
+  colnames(taxmat) <- "Species"
+  TAX_spingo <- tax_table(taxmat)
+  
+  otumat <- as.matrix(spingo.V4V5$SRR3225703c)
+  rownames(otumat) <- spingo.V4V5$Species
+  colnames(otumat) <- "SRR3225703c"
+  OTU_spingo <- otu_table(otumat, taxa_are_rows = TRUE)
+  
+  samp_spingo <- data.frame(colnames(OTU_spingo), rep("SPINGO", length(colnames(OTU_spingo))),
+                            rep("V4V5", length(colnames(OTU_spingo))))
+  colnames(samp_spingo) <- c("sampleID", "Taxonomy_type", "Region")
+  rownames(samp_spingo) <- samp_spingo$sampleID
+  str(samp_spingo)
+  SAMP_spingo <- sample_data(samp_spingo)
+  
+  ps1_spingo.V4V5 <- phyloseq(OTU_spingo, TAX_spingo, SAMP_spingo)
+  
+  spingo.V1V2 <- read.delim("./output/20221219_MiSeqV1V2Mock/SRR3225701.summary.txt",
+                            header = F, col.names = c("Species", "SRR3225701c"))
+  spingo.V1V2$Species <- str_replace_all(spingo.V1V2$Species, "\\(", "")
+  spingo.V1V2$SRR3225701c <- as.numeric(str_replace_all(spingo.V1V2$SRR3225701c, "\\)", ""))
+  
+  spingo.V1V2$Species <- str_replace_all(spingo.V1V2$Species, "_", " ")
+  spingo.V1V2 <- refine_species_names(spingo.V1V2)
+  
+  taxmat <- as.matrix(spingo.V1V2$Species)
+  rownames(taxmat) <- spingo.V1V2$Species 
+  colnames(taxmat) <- "Species"
+  TAX_spingo <- tax_table(taxmat)
+  
+  otumat <- as.matrix(spingo.V1V2$SRR3225701c)
+  rownames(otumat) <- spingo.V1V2$Species
+  colnames(otumat) <- "SRR3225701c"
+  OTU_spingo <- otu_table(otumat, taxa_are_rows = TRUE)
+  
+  samp_spingo <- data.frame(colnames(OTU_spingo), rep("SPINGO", length(colnames(OTU_spingo))),
+                            rep("V1V2", length(colnames(OTU_spingo))))
+  colnames(samp_spingo) <- c("sampleID", "Taxonomy_type", "Region")
+  rownames(samp_spingo) <- samp_spingo$sampleID
+  str(samp_spingo)
+  SAMP_spingo <- sample_data(samp_spingo)
+  
+  ps1_spingo.V1V2 <- phyloseq(OTU_spingo, TAX_spingo, SAMP_spingo)
+  
+  #load("output/mock_analysis/ps1_dada.V1V2.RData") # precalculated
+  
+  
+  
+  ps1_all<- merge_phyloseq(ps1_dada.V1V2, ps1_dada.V4V5, 
+                           ps1_parathaa.V1V2, ps1_parathaa.V4V5, 
+                           ps1_spingo.V1V2, ps1_spingo.V4V5)
 }
 
 if(includeSpingo==F){
-ps1_all<- merge_phyloseq(ps1_dada.V1V2, ps1_dada.V4V5, 
-                         ps1_parathaa.V1V2, ps1_parathaa.V4V5)
+  ps1_all<- merge_phyloseq(ps1_dada.V1V2, ps1_dada.V4V5, 
+                           ps1_parathaa.V1V2, ps1_parathaa.V4V5)
 }
 
 ps1.com <- ps1_all
@@ -436,21 +462,21 @@ for(level in c("Genus", "Species")){
                )
            )
   plot.composition.relAbun <- plot.composition.relAbun +   theme(axis.text.x = element_text(size=12, angle=45, hjust=1)) + scale_x_discrete(labels=xlabs) 
-  #ggsave(filename=paste0("~/proj/parathaa/output/viz/", level, "parathaa_taxonomy.png"), plot.composition.relAbun, width=10, height=6)
+
   if(level!="Species")
-    ggsave(filename=paste0(outputDir, "/", level, "mock_taxonomy.png"), plot.composition.relAbun, width=6, height=6)
+    ggsave(filename=paste0(opts$o, "/Figures/", level, "mock_taxonomy.png"), plot.composition.relAbun, width=6, height=6)
   if(level=="Species")
-    ggsave(filename=paste0(outputDir, "/", level, "mock_taxonomy.png"), plot.composition.relAbun, width=10, height=6)
+    ggsave(filename=paste0(opts$o, "/Figures/", level, "mock_taxonomy.png"), plot.composition.relAbun, width=10, height=6)
   
   plotList[[level]] <- plot.composition.relAbun
 }
 
 ## Panel Plot ##
 p1 <- ggarrange(plotList[["Genus"]], plotList[["Species"]] , ncol=2, labels = c("B", "C"), align="h", widths=c(1,1.5)) 
-ggsave(filename = file.path(outputDir, "genus_species_panel.png"), plot= p1, height = 6, width=14, dpi=600)
+ggsave(filename = paste0(opts$o, "/Figures/", "mock_genus_species_panel.png"), plot= p1, height = 6, width=14, dpi=600)
 ## Panel Plot ##
 p1 <- ggarrange(plotList[["Species"]], plotList[["Genus"]], ncol=2, labels = c("B", "C"), align="h", widths=c(1.5,1)) 
-ggsave(filename = file.path(outputDir, "species_genus_panel.png"), plot= p1, height = 6, width=14, dpi=600)
+ggsave(filename = paste0(opts$o, "/Figures/", "mock_species_genus_panel.png"), plot= p1, height = 6, width=14, dpi=600)
 
 
 ## Heatmap of mock community
@@ -472,7 +498,7 @@ if(includeSpingo==F){
                          "V1V2 Parathaa", "V4V5 Parathaa")
   forHeat <- forHeat[c(1,3,2,4),]
 }
-#View(forHeat)
+
 included <- c("Actinomyces odontolyticus",
               "Bacillus cereus",
               "Bacillus cereus;Bacillus thuringiensis",
@@ -530,7 +556,7 @@ col_fun <- c("grey", "grey", "grey",   rev(magma(98)))
 ### Anything < 0.1% set to 0
 forHeat <- forHeat*(forHeat>0.001)
 
-png(file.path(outputDir, "Fig_2A_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
+png(paste0(opts$o, "/Figures/", "Fig_2A_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
 ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
                column_names_max_height = unit(10, "cm"),
                cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
