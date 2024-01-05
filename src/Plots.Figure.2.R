@@ -383,6 +383,7 @@ if(includeSpingo==F){
 }
 
 ps1.com <- ps1_all
+saveRDS(pst.com, "ps1.com.RDS")
 
 # We need to set Palette
 taxic <- as.data.frame(ps1.com@tax_table) # this will help in setting large color options
