@@ -383,7 +383,7 @@ if(includeSpingo==F){
 }
 
 ps1.com <- ps1_all
-saveRDS(pst.com, "ps1.com.RDS")
+#saveRDS(pst.com, "ps1.com.RDS")
 
 # We need to set Palette
 taxic <- as.data.frame(ps1.com@tax_table) # this will help in setting large color options
@@ -403,6 +403,7 @@ tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Class"]), "Class"] <- "c__"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Order"]), "Order"] <- "o__"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Family"]), "Family"] <- "f__"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Genus"]), "Genus"] <- "Unknown"
+tax_table(ps1.com)[which(tax_table(ps1.com)[, "Genus"]==""), "Genus"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Species"]), "Species"] <- "Unknown"
 tax_table(ps1.com)[which(tax_table(ps1.com)[, "Species"]=="UNCLASSIFIED"), "Species"] <- "Unknown"
 tax_table(ps1.com)[which(tax_table(ps1.com)[, "Species"]=="AMBIGUOUS"), "Species"] <- "Unknown"
@@ -426,7 +427,7 @@ ps1.com@phy_tree <- NULL
 plotList <- list()
 
 # Taxonomy plots
-for(level in c("Genus", "Species")){
+for(level in c("Species")){
 
   ps1.com.rel <- microbiome::transform(ps1.com, "compositional")
   ps1.com.rel.lev <- aggregate_rare(ps1.com.rel, level, detection = .0001/100, prevalence = 10/100)
