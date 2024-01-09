@@ -427,7 +427,7 @@ ps1.com@phy_tree <- NULL
 plotList <- list()
 
 # Taxonomy plots
-for(level in c("Species")){
+for(level in c("Genus","Species")){
 
   ps1.com.rel <- microbiome::transform(ps1.com, "compositional")
   ps1.com.rel.lev <- aggregate_rare(ps1.com.rel, level, detection = .0001/100, prevalence = 10/100)
