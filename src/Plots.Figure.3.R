@@ -1,5 +1,25 @@
 ## Compare taxonomies from SILVA vs PARATHAA
 
+require(docopt)
+
+'Usage:
+  Plots.Figure.3.R [-o <output> --counts <closed_ref_taxonomy_table> --fasta <fasta_file> --dada_db <dada2 db> --dada_db_sp <dada2 spec db> --paraAssign <parathaa_assignments> --countSeq <count file with seqs>]
+  
+  
+Options:
+  --counts load all_samples_taxonomy_closed_reference.tsv 
+  --countSeq count file with sequences
+  --fasta load amplicons_fromKelsey.fasta (fasta file for the counts table)
+  --dada_db dada2 db
+  --dada_db_sp dada2 Species db
+  --paraAssign parathaa assignments
+  -o output
+  ]' -> doc
+
+
+opts <- docopt(doc)
+
+
 library(microbiome) # data analysis and visualisation
 library(phyloseq) # also the basis of data object. Data analysis and visualisation
 library(RColorBrewer) # nice color options
@@ -21,18 +41,17 @@ suppressPackageStartupMessages(library(seqinr))
 source_url("https://raw.githubusercontent.com/lrjoshi/FastaTabular/master/fasta_and_tabular.R")
 
 #### SET OUTPUT DIRECTORY FOR PLOTS ####
-setwd("C:/Users/mshort/Documents/proj/parathaa/")
-outputDir <- "output/Figures/ASD/allowMult"
-dir.create(outputDir)
-dadaAllowMult <- FALSE
+outputDir <- opts$o#"output/Figures/ASD/allowMult"
+dadaAllowMult <- TRUE
 
 ############################
 ### ASD Dataset Analysis ###
 ############################
 
 ## Read in data with taxonomy from Kelsey's analysis with SILVA
-kelseyDataRaw <- read.delim("./input/all_samples_taxonomy_closed_reference.tsv", 
+kelseyDataRaw <- read.delim(opts$counts, #"./input/all_samples_taxonomy_closed_reference.tsv", 
                             sep='\t', fill=T, stringsAsFactors = F, header=T)
+
 tax_oldDADA2 <- kelseyDataRaw %>%
   dplyr::select(taxonomy) %>%
   separate(taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family",
@@ -49,16 +68,21 @@ kelseyDataFull <- kelseyDataRaw %>%
                    taxonomy))
 
 ## SILVA Seed-based DADA2 training set
-taxa <- assignTaxonomy("./input/amplicons_fromKelsey.fasta", 
-                       "./input/20231215.silva.seed_v138_1.ng.dada.fasta",
+taxa <- assignTaxonomy(opts$fasta,#"./input/amplicons_fromKelsey.fasta", 
+                       opts$dada_db, #"./input/20231215.silva.seed_v138_1.ng.dada.fasta",
                        multithread=TRUE)
-taxa.sp <- addSpecies(taxa, "./input/20231215_silva.seed_v138_1.ng.dada.sp.fasta", allowMultiple = dadaAllowMult)
+
+taxa.sp <- addSpecies(taxa, opts$dada_db_sp, #"./input/20231215_silva.seed_v138_1.ng.dada.sp.fasta", 
+                      allowMultiple = dadaAllowMult)
 
 tax_dada <- as.matrix(taxa.sp)
 
 ## Get taxa IDs
-kelseyData <- read.delim("input/all_samples_taxonomy_closed_reference_withseqs.tsv", sep='\t', fill=T, stringsAsFactors = F)
+kelseyData <- read.delim(opts$CountSeq, #"input/all_samples_taxonomy_closed_reference_withseqs.tsv", 
+                         sep='\t', fill=T, stringsAsFactors = F)
+
 kelseyData <- kelseyData[c(1,126)] 
+
 taxaIDs <- paste("ID", 1:nrow(kelseyData), sep = "")
 kelseyData <- cbind(taxaIDs, kelseyData[,2], kelseyData[,1])
 kelseyData <- as.data.frame(kelseyData)
@@ -98,8 +122,9 @@ print(ps1_dada)
 #load("output/ps1_dada.RData")
 
 ## Read in PARATHAA results
-parathaData <- read.delim("./output/20231203_kindom_fix_ASD/taxonomic_assignments.tsv", 
+parathaData <- read.delim(opts$paraAssign, #"./output/20231203_kindom_fix_ASD/taxonomic_assignments.tsv", 
                           sep='\t', fill=T, stringsAsFactors = F, header=T)
+
 parathaData$query.num <- as.numeric(gsub("ID", "", parathaData$query.name))
 parathaData <- parathaData %>% arrange(query.num)
 
