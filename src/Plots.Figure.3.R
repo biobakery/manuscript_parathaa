@@ -173,12 +173,17 @@ tax_table(ps1.com) <- new.tax # incroporate into phyloseq Object
 
 # now edit the unclassified taxa
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Genus"]), "Genus"] <- "Unknown"
+tax_table(ps1.com)[which(tax_table(ps1.com)[, "Genus"]==""), "Genus"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Family"]), "Family"] <- "Unknown"
+tax_table(ps1.com)[which(tax_table(ps1.com)[, "Family"]==""), "Family"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Order"]), "Order"] <- "Unknown"
+tax_table(ps1.com)[which(tax_table(ps1.com)[, "Order"]==""), "Order"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Class"]), "Class"] <- "Unknown"
+tax_table(ps1.com)[which(tax_table(ps1.com)[, "Class"]==""), "Class"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Phylum"]), "Phylum"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "OTU"]), "OTU"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Species"]), "Species"] <- "Unknown"
+tax_table(ps1.com)[which(tax_table(ps1.com)[, "Species"]==""), "Species"] <- "Unknown"
 tax_table(ps1.com)[is.na(tax_table(ps1.com)[, "Kingdom"]), "Kingdom"] <- "Unknown"
 
 
