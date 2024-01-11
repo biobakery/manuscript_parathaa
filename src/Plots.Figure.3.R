@@ -52,6 +52,8 @@ dadaAllowMult <- TRUE
 kelseyDataRaw <- read.delim(opts$counts, #"./input/all_samples_taxonomy_closed_reference.tsv", 
                             sep='\t', fill=T, stringsAsFactors = F, header=T)
 
+message("read in counts")
+
 tax_oldDADA2 <- kelseyDataRaw %>%
   dplyr::select(taxonomy) %>%
   separate(taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family",
@@ -78,8 +80,10 @@ taxa.sp <- addSpecies(taxa, opts$dada_db_sp, #"./input/20231215_silva.seed_v138_
 tax_dada <- as.matrix(taxa.sp)
 
 ## Get taxa IDs
-kelseyData <- read.delim(opts$CountSeq, #"input/all_samples_taxonomy_closed_reference_withseqs.tsv", 
+kelseyData <- read.delim(opts$countSeq, #"input/all_samples_taxonomy_closed_reference_withseqs.tsv", 
                          sep='\t', fill=T, stringsAsFactors = F)
+
+message("read in count Seq")
 
 kelseyData <- kelseyData[c(1,126)] 
 
@@ -124,6 +128,8 @@ print(ps1_dada)
 ## Read in PARATHAA results
 parathaData <- read.delim(opts$paraAssign, #"./output/20231203_kindom_fix_ASD/taxonomic_assignments.tsv", 
                           sep='\t', fill=T, stringsAsFactors = F, header=T)
+
+message("read in parathaa results")
 
 parathaData$query.num <- as.numeric(gsub("ID", "", parathaData$query.name))
 parathaData <- parathaData %>% arrange(query.num)
