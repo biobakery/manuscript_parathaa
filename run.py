@@ -73,7 +73,7 @@ oligos_v1v2=os.path.join(args.paraDir, "input/primers/V1V2.oligos")
 # Write workflow to download files
 
 workflow.add_task(
-    "gunzip input/Mock_data/SRR3225703.fasta.gz",
+    "gunzip input/Mock_data/SRR3225701.fasta.gz",
     targets=V4V5_mock_fasta,
     names="unzipping mock V4V5 fasta"
 )
