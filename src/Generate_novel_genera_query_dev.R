@@ -31,10 +31,13 @@ seedTaxFile <- opts$s
 
 SeedTax <- read.table(seedTaxFile , header=F, fill=TRUE,sep='\t')
 
-SeedTax <- SeedTax %>%
-  separate(col=V1, into=c("primaryAccession", "ArbID"), sep="\\.") %>%
-  separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";") %>%
-  filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="")
+suppressWarnings({
+  SeedTax <- SeedTax %>%
+    separate(col=V1, into=c("primaryAccession", "ArbID"), sep="\\.") %>%
+    separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";") %>%
+    filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="")
+})
+
 
 
 #Seed database contains 2076 genera
@@ -51,9 +54,12 @@ taxdata <- taxdata %>%
 taxdata <- taxdata %>%
   mutate(taxonomy=paste0(path, organism_name))
 
-taxdata <- taxdata %>%
-  select(AccID, primaryAccession, start, stop, taxonomy) %>%
-  separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";")
+suppressWarnings({
+  taxdata <- taxdata %>%
+    select(AccID, primaryAccession, start, stop, taxonomy) %>%
+    separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";")
+})
+
 
 ## Additional changes (getting rid of subspecies)
 taxdata <- SILVA.species.editor(taxdata)

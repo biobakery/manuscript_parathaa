@@ -34,8 +34,10 @@ seedTaxFile <- opts$s
 
 seedTax <- read.table(seedTaxFile, header=F, sep="\t")
 
+suppressWarnings({
+  seedTax <- seedTax %>% separate(col=V2, into=taxonomyRanks, sep = ";")
+})
 
-seedTax <- seedTax %>% separate(col=V2, into=taxonomyRanks, sep = ";")
 seedTax <- seedTax %>% mutate(primaryaccession=gsub("\\..*", "", V1))
 
 SeedGenera <- unique(seedTax$Genus)
@@ -52,9 +54,12 @@ taxdata <- taxdata %>%
 taxdata <- taxdata %>%
   mutate(taxonomy=paste0(path, organism_name))
 
-taxdata <- taxdata %>%
-  select(AccID, primaryAccession, start, stop, taxonomy) %>%
-  separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";")
+suppressWarnings({
+  taxdata <- taxdata %>%
+    select(AccID, primaryAccession, start, stop, taxonomy) %>%
+    separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";")
+})
+
 
 ## Additional changes (getting rid of subspecies)
 taxdata <- SILVA.species.editor(taxdata)
