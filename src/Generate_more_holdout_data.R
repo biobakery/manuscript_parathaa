@@ -9,6 +9,7 @@ Options:
   -p directory where parathaa github repo is cloned
   -s seed_db_tax
   -t assignments
+  -q old_queries
   ]' -> doc
 
 
@@ -61,7 +62,7 @@ taxdata_filt <- taxdata %>% filter(!primaryAccession %in% seedTax$primaryaccessi
 
 
 ### filter out the ids in the original benchmark
-prev_test_reads <- read.table(opts$q)
+prev_test_reads <- read.table(file=opts$q)
 
 #filter them out
 taxdata_filt_filt <- taxdata_filt %>% filter(!AccID %in% prev_test_reads$V1)
