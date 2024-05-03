@@ -181,7 +181,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
     unite("AccID", c("primaryAccession", "start", "stop"), sep=".", remove=F)
   taxdata <- taxdata %>%
     mutate(taxonomy=paste0(path, organism_name))
-  taxdata <- SILVA.species.editor.DADA(taxdata, "taxonomy")
+  #taxdata <- SILVA.species.editor.DADA(taxdata, "taxonomy")
   
   taxdata <- taxdata %>%
     select(AccID, primaryAccession, start, stop, taxonomy) %>%
@@ -189,11 +189,11 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   
   ## Additional changes (getting rid of subspecies)
   taxdata <- SILVA.species.editor(taxdata)
-  taxdata <- taxdata %>% filter(!is.na(Species))
+  #taxdata <- taxdata %>% filter(!is.na(Species))
   
   
   ## Read in seed db for exclusion
-  inFileSeedDB <- "input/silva.seed_v138_1.tax"
+  #inFileSeedDB <- "input/silva.seed_v138_1.tax"
   SeedTax <- read.table(inFileSeedDB , header=F, fill=TRUE,sep='\t')
   
   SeedTax <- SeedTax %>%
@@ -201,12 +201,13 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
     separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";") %>%
     filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="") 
   
-  SeedTax$Genus <- gsub("_", " ", SeedTax$Genus)
   
   taxdata_seedless <- taxdata %>% 
-    filter(!primaryAccession %in% SeedTax$primaryAccession)
+    filter(!primaryAccession %in% SeedTax$primaryAccession) %>%
     ## Subset to Genera in Seed for now
     filter(Genus %in% unique(SeedTax$Genus))
+  
+
   
   ## Make synthetic comparison dataset
   synth.parathaa<- as.data.frame(tax_table(ps1_parathaa))
@@ -263,7 +264,31 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   ## Not sure how "fair" this is but lets see how it goes
   
   ###Seed_genus is TRUE if the genus was included in the seed database. We do not want to change these assignments..
-
+  taxdata_seed <- taxdata %>% filter(primaryAccession %in% SeedTax$primaryAccession)
+  taxdata_SP <- word(taxdata_seed$Species, 1, 2)
+  taxdata_SP <- taxdata_SP[-which(is.na(taxdata_SP))]
+  compare.synth_adjust <- compare.synth %>% mutate(seed_genus=Genus.silva %in% taxdata_seed$Genus)
+  compare.synth_adjust <- compare.synth_adjust %>% mutate(seed_species=Species.silva %in% taxdata_SP)
+  
+  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.genus.x_cor=ifelse(is.na(Flag.genus.x) & !seed_genus, TRUE, Flag.genus.x))
+  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.genus.y_cor=ifelse(is.na(Flag.genus.y) & !seed_genus, TRUE, Flag.genus.y))
+  
+  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.x_cor=ifelse(is.na(Flag.x) & !seed_species, TRUE, Flag.x))
+  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.y_cor=ifelse(is.na(Flag.y) & !seed_species, TRUE, Flag.y))
+  
+  
+  compare.synth_adjust$Flag.genus.x <- compare.synth_adjust$Flag.genus.x_cor
+  compare.synth_adjust$Flag.genus.y <- compare.synth_adjust$Flag.genus.y_cor
+  
+  compare.synth_adjust$Flag.x <- compare.synth_adjust$Flag.x_cor
+  compare.synth_adjust$Flag.y <- compare.synth_adjust$Flag.y_cor
+  
+  t3 <- performance.table(compare.synth_adjust, "Species")
+  write.table(t3, file= file.path(outputDir, paste0(regionName, "_Species_performance_adjust.tsv")), sep="\t", col.names = NA)
+  t4 <- performance.table(compare.synth_adjust, "Genus")
+  write.table(t4, file= file.path(outputDir, paste0(regionName, "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
+  
+  
   
   
   compare.genus <- data.frame()

@@ -6,22 +6,24 @@ performance.table <- function(compareData, level){
     TP.parathaa <- compareData %>% filter(Flag.y) %>% nrow()
     FP.parathaa <- compareData %>% filter(!Flag.y) %>% nrow()
     TN.parathaa <- 0
-    FN.parathaa <- compareData %>% filter(is.na(Species.parathaa)) %>% nrow()
+    FN.parathaa <- compareData %>% filter(is.na(Species.parathaa) & is.na(Flag.y)) %>% nrow()
     
     multCorrect.parathaa <- compareData %>% filter(!Species.parathaa==Species.silva & Flag.y) %>% nrow() /nrow(compareData)
     uniqueCorrect.parathaa <- compareData %>% filter(Species.parathaa==Species.silva) %>% nrow() /nrow(compareData)
-    unassigned.parathaa <- compareData %>% filter(is.na(Flag.y)) %>% nrow() /nrow(compareData)
+    unassignedCorrect.parathaa <- compareData %>% filter(is.na(Species.parathaa) & Flag.y) %>% nrow() /nrow(compareData)
+    unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Species.parathaa) & is.na(Flag.y)) %>% nrow() /nrow(compareData)
   }
   
   if(level=="Genus"){
     TP.parathaa <- compareData %>% filter( Flag.genus.y) %>% nrow()
     FP.parathaa <- compareData %>% filter(!Flag.genus.y) %>% nrow()
     TN.parathaa <- 0
-    FN.parathaa <- compareData %>% filter(is.na(Genus.parathaa)) %>% nrow()
+    FN.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & is.na(Flag.genus.y)) %>% nrow()
     
     multCorrect.parathaa <- compareData %>% filter(!Genus.parathaa==Genus.silva & Flag.genus.y) %>% nrow() /nrow(compareData)
     uniqueCorrect.parathaa <- compareData %>% filter(Genus.parathaa==Genus.silva) %>% nrow() /nrow(compareData)
-    unassigned.parathaa <- compareData %>% filter(is.na(Flag.genus.y)) %>% nrow() /nrow(compareData)
+    unassignedCorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & Flag.y) %>% nrow() /nrow(compareData)
+    unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & is.na(Flag.y)) %>% nrow() /nrow(compareData)
   }
   
   accuracy.parathaa <- (TP.parathaa + TN.parathaa) / (TP.parathaa + TN.parathaa + FP.parathaa + FN.parathaa)
@@ -34,19 +36,21 @@ performance.table <- function(compareData, level){
     TP.dada <- compareData %>% filter( Flag.x) %>% nrow()
     FP.dada <- compareData %>% filter(!Flag.x) %>% nrow()
     TN.dada <- 0
-    FN.dada <- compareData %>% filter(is.na(Species.dada)) %>% nrow()
+    FN.dada <- compareData %>% filter(is.na(Species.dada) & is.na(Flag.x)) %>% nrow()
     multCorrect.dada <- compareData %>% filter(!Species.dada==Species.silva & Flag.x) %>% nrow() /nrow(compareData)
     uniqueCorrect.dada <- compareData %>% filter(Species.dada==Species.silva) %>% nrow() /nrow(compareData)
-    unassigned.dada <- compareData %>% filter(is.na(Flag.x)) %>% nrow() /nrow(compareData)
+    unassignedCorrect.dada <- compareData %>% filter(is.na(Species.dada) & Flag.x) %>% nrow() /nrow(compareData)
+    unassignedIncorrect.dada <- compareData %>% filter(is.na(Species.dada) & is.na(Flag.x)) %>% nrow() /nrow(compareData)
   }
   if(level=="Genus"){
     TP.dada <- compareData %>% filter( Flag.genus.x) %>% nrow()
     FP.dada <- compareData %>% filter(!Flag.genus.x) %>% nrow()
     TN.dada <- 0
-    FN.dada <- compareData %>% filter(is.na(Genus.dada)) %>% nrow()
+    FN.dada <- compareData %>% filter(is.na(Genus.dada) & is.na(Flag.genus.x)) %>% nrow()
     multCorrect.dada <- compareData %>% filter(!Genus.dada==Genus.silva & Flag.genus.x) %>% nrow() /nrow(compareData)
     uniqueCorrect.dada <- compareData %>% filter(Genus.dada==Genus.silva) %>% nrow() /nrow(compareData)
-    unassigned.dada <- compareData %>% filter(is.na(Flag.genus.x)) %>% nrow() /nrow(compareData)
+    unassignedCorrect.dada <- compareData %>% filter(is.na(Genus.dada) & Flag.genus.x) %>% nrow() /nrow(compareData)
+    unassignedIncorrect.dada <- compareData %>% filter(is.na(Genus.dada) & is.na(Flag.genus.x)) %>% nrow() /nrow(compareData)
   }
   
   accuracy.dada <- (TP.dada + TN.dada) / (TP.dada + TN.dada + FP.dada + FN.dada)
@@ -57,7 +61,7 @@ performance.table <- function(compareData, level){
 
   
   rows1 <- c(             "Accuracy", "Precision", "Recall", "F1 Score",
-                          "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned")
+                          "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect")
   
   table.out <- matrix(NA, nrow = length(rows1), ncol=2)
   colnames(table.out) <- c("Parathaa", "DADA2")
@@ -68,8 +72,10 @@ performance.table <- function(compareData, level){
   table.out["One-to-many Correct", "DADA2"] <- multCorrect.dada
   table.out["Incorrect", "Parathaa"] <- fpr.parathaa
   table.out["Incorrect", "DADA2"] <- fpr.dada
-  table.out["Unassigned", "Parathaa"] <- unassigned.parathaa
-  table.out["Unassigned", "DADA2"] <- unassigned.dada
+  table.out["Unassigned Correct", "Parathaa"] <- unassignedCorrect.parathaa
+  table.out["Unassigned Correct", "DADA2"] <- unassignedCorrect.dada
+  table.out["Unassigned Incorrect", "Parathaa"] <- unassignedIncorrect.parathaa
+  table.out["Unassigned Incorrect", "DADA2"] <- unassignedIncorrect.dada
   
   table.out["Accuracy", "Parathaa"] <- accuracy.parathaa
   table.out["Accuracy", "DADA2"] <- accuracy.dada
