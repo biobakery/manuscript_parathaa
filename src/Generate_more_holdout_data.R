@@ -61,7 +61,7 @@ taxdata_filt <- taxdata %>% filter(!primaryAccession %in% seedTax$primaryaccessi
 
 
 ### filter out the ids in the original benchmark
-prev_test_reads <- opts$q
+prev_test_reads <- read.table(opts$q)
 
 #filter them out
 taxdata_filt_filt <- taxdata_filt %>% filter(!AccID %in% prev_test_reads$V1)
