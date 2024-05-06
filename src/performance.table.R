@@ -2,18 +2,31 @@
 
 performance.table <- function(compareData, level){
   
+  #If we are comparing species level data
   if(level=="Species"){
+    
+    #We treat true positives as anything that we set the FLAG variable as true
     TP.parathaa <- compareData %>% filter(Flag.y) %>% nrow()
+    #We consider false positives to be anything that the FLAG variable is set to false
     FP.parathaa <- compareData %>% filter(!Flag.y) %>% nrow()
+    #We do not consider true negatives in our analysis
     TN.parathaa <- 0
+    #False negatives is cases where taxonomy is not assigned and the flag variable is not set
     FN.parathaa <- compareData %>% filter(is.na(Species.parathaa) & is.na(Flag.y)) %>% nrow()
     
+    #multi correct are cases where a species is set but it doesn't equal the silva species and the flag is true
     multCorrect.parathaa <- compareData %>% filter(!Species.parathaa==Species.silva & Flag.y) %>% nrow() /nrow(compareData)
+    #unique correct are cases when taxonomy match up
     uniqueCorrect.parathaa <- compareData %>% filter(Species.parathaa==Species.silva) %>% nrow() /nrow(compareData)
+    #unassigned correct are cases where we think not assigning a taxonomy is the correct choice
+    #this occurs when the reference query is from a taxonomy that is outside of the database's knowledge
     unassignedCorrect.parathaa <- compareData %>% filter(is.na(Species.parathaa) & Flag.y) %>% nrow() /nrow(compareData)
+    #Unassigned incorrect are cases when we don't make an assignment but the taxonomy we were suppose to assign does exist 
+    # within the database
     unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Species.parathaa) & is.na(Flag.y)) %>% nrow() /nrow(compareData)
   }
   
+  # For information about individual variables see above section
   if(level=="Genus"){
     TP.parathaa <- compareData %>% filter( Flag.genus.y) %>% nrow()
     FP.parathaa <- compareData %>% filter(!Flag.genus.y) %>% nrow()
@@ -22,16 +35,18 @@ performance.table <- function(compareData, level){
     
     multCorrect.parathaa <- compareData %>% filter(!Genus.parathaa==Genus.silva & Flag.genus.y) %>% nrow() /nrow(compareData)
     uniqueCorrect.parathaa <- compareData %>% filter(Genus.parathaa==Genus.silva) %>% nrow() /nrow(compareData)
-    unassignedCorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & Flag.y) %>% nrow() /nrow(compareData)
-    unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & is.na(Flag.y)) %>% nrow() /nrow(compareData)
+    unassignedCorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & Flag.genus.y) %>% nrow() /nrow(compareData)
+    unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & is.na(Flag.genus.y)) %>% nrow() /nrow(compareData)
   }
   
+  #Calculate metrics
   accuracy.parathaa <- (TP.parathaa + TN.parathaa) / (TP.parathaa + TN.parathaa + FP.parathaa + FN.parathaa)
   precision.parathaa <- TP.parathaa / (TP.parathaa + FP.parathaa)
   recall.parathaa <- TP.parathaa / (TP.parathaa + FN.parathaa)
   f1.parathaa <- 2 * (precision.parathaa * recall.parathaa) / (precision.parathaa + recall.parathaa)
   fpr.parathaa <- FP.parathaa / nrow(compareData)
-
+  
+  #Do the same as above but for dada2
   if(level=="Species"){
     TP.dada <- compareData %>% filter( Flag.x) %>% nrow()
     FP.dada <- compareData %>% filter(!Flag.x) %>% nrow()
@@ -60,6 +75,7 @@ performance.table <- function(compareData, level){
   fpr.dada <- FP.dada / nrow(compareData)
 
   
+  #set up the output table
   rows1 <- c(             "Accuracy", "Precision", "Recall", "F1 Score",
                           "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect")
   
@@ -88,31 +104,4 @@ performance.table <- function(compareData, level){
 
 
   print(round(table.out, 3))
-}
-
-if(FALSE){
-### Shortcut to get tables without having to rerun Plots.Table.1.R
-load("output/Figures/test_2e12/V1V2_full_comparisons.RData")
-outputDir <- "output/Figures/test_2e12/"
-regionName <- "V1V2"
-t1 <- performance.table(compare.synth, "Species")
-write.table(t1, file= file.path(outputDir, paste0(regionName, "_Species_performance.tsv")), sep="\t", col.names = NA)
-t2 <- performance.table(compare.synth, "Genus")
-write.table(t2, file= file.path(outputDir, paste0(regionName, "_Genus_performance.tsv")), sep="\t", col.names = NA)
-
-
-load("output/Figures/test_2e12/V4V5_full_comparisons.RData")
-outputDir <- "output/Figures/test_2e12/"
-regionName <- "V4V5"
-t1 <- performance.table(compare.synth, "Species")
-write.table(t1, file= file.path(outputDir, paste0(regionName, "_Species_performance.tsv")), sep="\t", col.names = NA)
-t2 <- performance.table(compare.synth, "Genus")
-write.table(t2, file= file.path(outputDir, paste0(regionName, "_Genus_performance.tsv")), sep="\t", col.names = NA)
-
-load("output/Figures/synth_mult/V1V2_full_comparisons.RData")
-performance.table(compare.synth, "Species")
-
-load("output/Figures/synth_mult/V4V5_full_comparisons.RData")
-performance.table(compare.synth, "Species")
-
 }
