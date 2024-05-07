@@ -371,12 +371,12 @@ workflow.add_task(
 
 ## Filter the reads to minimum length of 200
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V1V2_syn_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V4V5_syn_reads
 )
 
@@ -398,12 +398,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V1V2_novel_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V4V5_novel_reads
 )
 
@@ -426,12 +426,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V1V2_even_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V4V5_even_reads
 )
 
@@ -454,12 +454,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V1V2_holdout1_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V4V5_holdout1_reads
 )
 
@@ -482,12 +482,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V1V2_holdout2_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]"
+    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
     depends=V4V5_holdout2_reads
 )
 
@@ -583,6 +583,27 @@ if(!args.sensitive):
         name="Assigning taxonomy to V4V5 holdout 2 reads"
     )
     if(bench_FL):
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_syn_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_even_genus_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_novel_genus_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_holdout1_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_holdout2_reads
+        )
+
         # original
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
@@ -714,6 +735,26 @@ elif(args.sensitive):
     )
     #run full length bench mark assignments if its set
     if(bench_FL):
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_syn_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_even_genus_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_novel_genus_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_holdout1_reads
+        )
+        workflow.add_task(
+            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            depends=FL_holdout2_reads
+        )
         # original
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
