@@ -494,7 +494,7 @@ workflow.add_task(
 
 
 #run parathaa on V1V2 synthetic using default specific mode
-if(!args.sensitive):
+if(not args.sensitive):
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
         depends=[V1V2_db, V1V2_syn_reads],
@@ -891,7 +891,7 @@ if(bench_FL):
 
 
 #only run if benchmark only flag is false
-if(!args.benchonly):
+if(not args.benchonly):
 # Run parathaa on mock V4V5
     workflow.add_task(
         "mkdir output/V4V5_Mock; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [args[0]] --output [args[1]] --threads [args[2]]",
