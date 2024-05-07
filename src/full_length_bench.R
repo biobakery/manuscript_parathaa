@@ -1,20 +1,15 @@
-## Compare taxonomies from DADA2 vs PARATHAA
-
-
+## Benchmarks full length assignments
 require(docopt)
 
 'Usage:
-  Plots.Table.1.R [-p <parathaa_PATH> --dada_db <dada2_db> --dada_db_sp <dada2_db_sp> -t <input_taxonomy> -o <output> --paraAssignV4V5 <V4V5_taxonomy_file> --paraAssignV1V2 <V1V2_taxonomy_file> --queryV4V5 <V4V5 seqs> --queryV1V2 <V1V2 seqs> -s <seed_data>]
+  full_length_bench.R [-p <parathaa_PATH> --dada_db_FL <dada2_db> -t <input_taxonomy> -o <output> --paraAssign <para_Assignments> --query <query seqs> -s <seed_data>]
   
   
 Options:
   -p directory where parathaa github repo is cloned
-  --dada_db location of DADA2 db
-  --dada_db_sp location of DADA2 species db
-  --paraAssignV4V5 parathaa assignments for V4V5
-  --paraAssignV1V2 parathaa assignments for V1V2
-  --queryV4V5 query sequence file for V4V5
-  --queryV1V2 query sequence file for V1V2
+  --dada_db_FL location of DADA2 db
+  --paraAssign
+  --query
   -t input taxonomy
   -o output
   -s seed_data
@@ -38,19 +33,13 @@ library(phytools)
 suppressPackageStartupMessages(library(seqinr))
 source(file.path(parathaaDir, "parathaa/utility/SILVA.species.editor.dev.R"))
 
-##There is probably a better way of sourcing this file... but for now leave it as is...
+
 source("src/performance.table.R")
 
 
-
-##################################
-## Synthetic community analysis ##
-##################################
-
-
-## Define Function ##
-run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir, dadaAllowMult = FALSE,
-                               DADAdb, DADAdb.sp, inFileTaxdata, inFileSeedDB){
+## This is very similar to the variable region function with some exceptions to deal with full length sequences
+run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
+                               DADAdb, inFileTaxdata, inFileSeedDB){
   
   dir.create(outputDir, recursive = T, showWarnings = F)
   
@@ -94,9 +83,10 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   ps1_parathaa <- phyloseq(OTU_parathaa, TAX_parathaa, SAMP_parathaa)
   print(ps1_parathaa)
   
-  ## Assign taxonomy with DADA2
   
-  ## First, get names and sequences from fasta file
+  
+  
+  ## Assign taxonomy with DADA2
   getNames <- read.fasta(file(sequenceFile), as.string = TRUE,
                          forceDNAtolower = FALSE, whole.header = FALSE)
   #get the names and split it by (tab as we only want to keep the accession ID)
@@ -107,57 +97,27 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   #create data frame with sequence and ID
   name.df <- data.frame("sequence" = unlist(getSequence(getNames, as.string=T)), taxaIDs = names1)
   
-  #grab sequences with N in them as they need to be removed for species assignment by DADA2
-  nChars2 <- name.df %>% filter(str_detect(sequence, "N")) %>% pull(taxaIDs)
-  
-  ## Next, assign taxonomy to genus level with DADA2 (takes a few minutes)
-  set.seed(3874)
-  taxa <- assignTaxonomy(sequenceFile, 
+  taxa_dada2 <- assignTaxonomy(sequenceFile, 
                          DADAdb,
                          multithread=TRUE)
-  
-  
-  ## Remove sequences with undefined ("N") bases, store until after species assignment
-  taxa.test <- as.data.frame(taxa)
-  taxa.test$taxaIDs <- names1
-  nChars <- grep("N", rownames(taxa.test))
-  print(paste("Removing", length(nChars), "sequences with N bases"))
-  withNbases <- taxa.test[nChars,]
-  taxa <- taxa[-nChars,]
-  
-  ## Perform species assignment with DADA2 (takes a few minutes)
-  taxa.sp <- addSpecies(taxa, DADAdb.sp, allowMultiple = dadaAllowMult)
-  
-  
-  ## Add in reference IDs and taxonomy from sequences with "N" bases
-  tax_dada <- as.data.frame(taxa.sp)
-  tax_dada$sequence <- str_split(rownames(tax_dada), "\\.", simplify=TRUE)[,1]
-  getnamSubset <-name.df %>% filter(sequence %in% tax_dada$sequence)
-  tax_dada2 <- cbind(tax_dada, "taxaIDs" =getnamSubset$taxaIDs)
-  tax_dada2 <- full_join(tax_dada2, withNbases)
-  rownames(tax_dada2) <- tax_dada2[,"taxaIDs"]
-  
+
+  stopifnot(identical(name.df$sequence, unname(rownames(taxa_dada2))))
+  rownames(taxa_dada2) <- name.df$taxaIDs
   #select so we only keep taxonomy columns
-  tax_dada3 <- tax_dada2 %>%
+  taxa_dada2 <- as.data.frame(taxa_dada2)
+  taxa_dada2$taxaIDs <- rownames(taxa_dada2)
+  
+  tax_dada3 <- taxa_dada2 %>%
     select(Kingdom, Phylum, Class, Order, Family, Genus, Species) 
   
   #Add Species name so that genus is also there and deal with allowing multi assignments so its the same 
   # format as Parathaa:
-  tax_dada3 <- tax_dada3 %>% 
-    rowwise() %>% 
-    mutate(Species = if_else(!is.na(Species), 
-                             paste( paste(Genus), str_split(Species, "/",simplify = T), collapse =";"), 
-                             NA)
-    ) %>% 
-    as.matrix()
-  rownames(tax_dada3) <- tax_dada2[,"taxaIDs"]
-  
-  
+  tax_dada3 <- as.matrix(tax_dada3)
   ## Place DADA2 taxonomies into phyloseq object
   TAX_dada <- tax_table(tax_dada3)
   
   ## Make dumby OTU table for the phyloseq object
-  otutab <- as.data.frame(tax_dada2) %>% 
+  otutab <- as.data.frame(taxa_dada2) %>% 
     select(taxaIDs, Kingdom, Phylum, Class, Order, Family, Genus, Species) %>%
     dplyr::group_by(taxaIDs, Kingdom, Phylum, Class, Order, Family, Genus, Species) %>% 
     dplyr::count(taxaIDs, name="DADA2") 
@@ -217,7 +177,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
     ## Come back to why we need to do this?
     filter(Genus %in% unique(SeedTax$Genus))
   
-
+  
   
   ## Make synthetic comparison dataset
   
@@ -319,52 +279,12 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   
 }
 
-## Define variables used across all function calls
-## 
-DADAdb <- opts$dada_db
-DADAdb.sp <- opts$dada_db_sp
-inFileTaxdata <- opts$t
-inFileSeedDB <- opts$s
 
 
-##### CALL FUNCTION ######
-run.synthetic.data(parathaaFile = opts$paraAssignV4V5, 
-                   sequenceFile = opts$queryV4V5,
-                   regionName = "V4V5", 
-                   outputDir=paste(opts$o, "/Figures/synth_mult_arc/", sep=""),
-                   dadaAllowMult = T,
-                   DADAdb = DADAdb,
-                   DADAdb.sp = DADAdb.sp,
-                   inFileTaxdata = inFileTaxdata,
-                   inFileSeedDB = inFileSeedDB)
-
-run.synthetic.data(parathaaFile = opts$paraAssignV1V2, 
-                   sequenceFile = opts$queryV1V2, 
-                   regionName = "V1V2", 
-                   outputDir=paste(opts$o, "/Figures/synth_mult_arc", sep=""),
-                   dadaAllowMult = T,
-                   DADAdb = DADAdb,
-                   DADAdb.sp = DADAdb.sp,
-                   inFileTaxdata = inFileTaxdata,
-                   inFileSeedDB = inFileSeedDB)
-
-run.synthetic.data(parathaaFile = opts$paraAssignV4V5, 
-                   sequenceFile = opts$queryV4V5,
-                   regionName = "V4V5", 
-                   outputDir=paste(opts$o, "/Figures/synth_nomult_arc/", sep=""),
-                   dadaAllowMult = F,
-                   DADAdb = DADAdb,
-                   DADAdb.sp = DADAdb.sp,
-                   inFileTaxdata = inFileTaxdata,
-                   inFileSeedDB = inFileSeedDB)
-
-run.synthetic.data(parathaaFile = opts$paraAssignV1V2, 
-                   sequenceFile = opts$queryV1V2, 
-                   regionName = "V1V2", 
-                   outputDir=paste(opts$o, "/Figures/synth_nomult_arc", sep=""),
-                   dadaAllowMult = F,
-                   DADAdb = DADAdb,
-                   DADAdb.sp = DADAdb.sp,
-                   inFileTaxdata = inFileTaxdata,
-                   inFileSeedDB = inFileSeedDB)
-
+run.full.bench(parathaaFile = opts$paraAssign, 
+               sequenceFile = opts$query, 
+               outputDir = opts$o, 
+               DADAdb = opts$dada_db_FL, 
+               inFileTaxdata = opts$t, 
+               inFileSeedDB = opts$s
+)
