@@ -338,14 +338,14 @@ workflow.add_task(
 
 workflow.add_task(
    "faSomeRecords [depends[0]] [depends[1]] [targets[0]]",
-   depends=[silva_full_db_DNA, holdout_query1],
+   depends=[silva_full_db_DNA, hold1_genus_IDs],
    targets=FL_holdout1_reads,
    name="generating full length holdout1 reads"
 )
 
 workflow.add_task(
    "faSomeRecords [depends[0]] [depends[1]] [targets[0]]",
-   depends=[silva_full_db_DNA, holdout_query2],
+   depends=[silva_full_db_DNA, hold2_genus_IDs],
    targets=FL_holdout2_reads,
    name="generating full length holdout2 reads"
 )
