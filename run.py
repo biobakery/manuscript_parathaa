@@ -38,7 +38,7 @@ workflow.add_argument(
 )
 
 workflow.add_argument(
-    name="bench_FL",
+    name="benchFL",
     desc="Set this to run full length benchmarks on all datasets along with V1V2 and V4V5 subregions",
     action="store_true"
 
@@ -581,7 +581,7 @@ if(not args.sensitive):
         args=[args.threads, V4V5_holdout2_assignments],
         name="Assigning taxonomy to V4V5 holdout 2 reads"
     )
-    if(bench_FL):
+    if(args.benchFL):
         workflow.add_task(
             "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
             depends=FL_syn_reads
@@ -733,7 +733,7 @@ elif(args.sensitive):
         name="Assigning taxonomy to V4V5 holdout 2 reads"
     )
     #run full length bench mark assignments if its set
-    if(bench_FL):
+    if(args.benchFL):
         workflow.add_task(
             "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
             depends=FL_syn_reads
