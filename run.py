@@ -410,7 +410,7 @@ workflow.add_task(
 #PCR even genus reads
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_even_genus.pcr.fasta [targets[0]]",
-   depends=FL_even_genus,
+   depends=FL_even_genus_reads,
    args=oligos_v4v5,
    targets=V4V5_even_reads,
    name="generating v4v5 even reads"
@@ -418,7 +418,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_even_genus.pcr.fasta [targets[0]]",
-   depends=FL_even_genus,
+   depends=FL_even_genus_reads,
    args=oligos_v1v2,
    targets=V1V2_even_reads,
    name="generating v1v2 even reads"
