@@ -293,9 +293,9 @@ workflow.add_task(
 
 # Generate Synthetic reads for hold out 1 and 2
 workflow.add_task(
-    "Rscript src/Generate_more_holdout_data.R -p [args[0]] -s [depends[0]] -t [depends[1]]",
+    "Rscript src/Generate_more_holdout_data.R -p [args[0]] -s [depends[0]] -t [depends[1]] -q [depends[2]]",
     args=args.paraDir,
-    depends=[silva_seed_tax, silva_taxonomy_file],
+    depends=[silva_seed_tax, silva_taxonomy_file, syn_IDs],
     targets=[hold1_genus_IDs, hold2_genus_IDs],
     name="generate holdout 1 and 2 read IDs"
 )

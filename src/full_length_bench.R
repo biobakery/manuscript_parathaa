@@ -66,12 +66,12 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
   #convert to a matrix
   otumat <- as.matrix(otutab$Parathaa)
   rownames(otumat) <- otutab$query.name
-  colnames(otumat) <- paste0("Parathaa.", regionName)
+  colnames(otumat) <- paste0("Parathaa.", "FL")
   OTU_parathaa <- otu_table(otumat, taxa_are_rows = TRUE)
   
   #create sample information so it can be imported into phyloseq
   samp_parathaa <- data.frame(colnames(OTU_parathaa), rep("parathaa", length(colnames(OTU_parathaa))),
-                              rep(regionName, length(colnames(OTU_parathaa))))
+                              rep("FL", length(colnames(OTU_parathaa))))
   colnames(samp_parathaa) <- c("sampleID", "Taxonomy_type", "Region")
   rownames(samp_parathaa) <- samp_parathaa$sampleID
   
@@ -123,12 +123,12 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
     dplyr::count(taxaIDs, name="DADA2") 
   otumat <- as.matrix(otutab$DADA2)
   rownames(otumat) <- otutab$taxaIDs
-  colnames(otumat) <- paste0("DADA2.", regionName)
+  colnames(otumat) <- paste0("DADA2.", "FL")
   OTU_dada <- otu_table(otumat, taxa_are_rows = TRUE)
   
   ## Make sample data for the phyloseq object
   samp_dada <- data.frame(colnames(OTU_dada), rep("DADA2", length(colnames(OTU_dada))),
-                          rep(regionName, length(colnames(OTU_dada))))
+                          rep("FL", length(colnames(OTU_dada))))
   colnames(samp_dada) <- c("sampleID", "Taxonomy_type", "Region")
   rownames(samp_dada) <- samp_dada$sampleID
   #print out sample data for phyloseq object
@@ -237,13 +237,13 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
   # Remove seqs with N characters: 
   compare.synth <- compare.synth %>% filter(!AccID %in% nChars2)
   # save the comparison data
-  save(compare.synth, file= file.path(outputDir, paste0(regionName, "_full_comparisons.RData")))
+  save(compare.synth, file= file.path(outputDir, paste0("FL", "_full_comparisons.RData")))
   
   #write overall performance metrics for the comparison
   t1 <- performance.table(compare.synth, "Species")
-  write.table(t1, file= file.path(outputDir, paste0(regionName, "_Species_performance.tsv")), sep="\t", col.names = NA)
+  write.table(t1, file= file.path(outputDir, paste0("FL", "_Species_performance.tsv")), sep="\t", col.names = NA)
   t2 <- performance.table(compare.synth, "Genus")
-  write.table(t2, file= file.path(outputDir, paste0(regionName, "_Genus_performance.tsv")), sep="\t", col.names = NA)
+  write.table(t2, file= file.path(outputDir, paste0("FL", "_Genus_performance.tsv")), sep="\t", col.names = NA)
   
   
   ## We next do the same as above but with an adjusted metric
@@ -273,9 +273,9 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
   compare.synth_adjust$Flag.y <- compare.synth_adjust$Flag.y_cor
   
   t3 <- performance.table(compare.synth_adjust, "Species")
-  write.table(t3, file= file.path(outputDir, paste0(regionName, "_Species_performance_adjust.tsv")), sep="\t", col.names = NA)
+  write.table(t3, file= file.path(outputDir, paste0("FL", "_Species_performance_adjust.tsv")), sep="\t", col.names = NA)
   t4 <- performance.table(compare.synth_adjust, "Genus")
-  write.table(t4, file= file.path(outputDir, paste0(regionName, "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
+  write.table(t4, file= file.path(outputDir, paste0("FL", "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
   
 }
 
