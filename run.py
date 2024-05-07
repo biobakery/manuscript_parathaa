@@ -382,7 +382,7 @@ workflow.add_task(
 #PCR novel genus reads
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_novel_genus.pcr.fasta [targets[0]]",
-   depends=FL_novel_genus,
+   depends=FL_novel_genus_reads,
    args=oligos_v4v5,
    targets=V4V5_novel_reads,
    name="generating v4v5 novel reads"
@@ -390,7 +390,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_novel_genus.pcr.fasta [targets[0]]",
-   depends=FL_novel_genus,
+   depends=FL_novel_genus_reads,
    args=oligos_v1v2,
    targets=V1V2_novel_reads,
    name="generating v1v2 novel reads"
