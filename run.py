@@ -24,7 +24,7 @@ workflow.add_argument(
 )
 
 
-workflow.add_arugment(
+workflow.add_argument(
     name="benchonly",
     desc="Only run benchmarks",
     action="store_true"
