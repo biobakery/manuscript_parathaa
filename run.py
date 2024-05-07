@@ -33,7 +33,7 @@ workflow.add_arugment(
 
 workflow.add_argument(
     name="sensitive",
-    desc="run parathaa in sensitive mode"
+    desc="run parathaa in sensitive mode",
     action="store_true"
 )
 
