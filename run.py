@@ -240,8 +240,8 @@ workflow.add_task(
 
 workflow.add_task(
     "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_FL.tar.gz -P input/; tar -xf input/SILVA_FL.tar.gz -C input/; rm input/SILVA_FL.tar.gz",
-    targets=V4V5_db,
-    name="download pre-computed V4V5 database"
+    targets=FL_db,
+    name="download pre-computed full length database"
 )
 
 #Generate DADA2 files
@@ -609,7 +609,7 @@ if(not args.sensitive):
             depends=[FL_db, FL_syn_reads],
             targets=FL_original_tax,
             args=[args.threads, FL_original_assignments],
-            name="Assigning taxonomy to V4V5 holdout 2 reads"
+            name="Assigning taxonomy to original FL reads"
         )
         #Even
         workflow.add_task(
