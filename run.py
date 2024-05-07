@@ -843,7 +843,7 @@ workflow.add_task(
     name="Benchmarking holout 1 assignments"
 )
 
-if(bench_FL):
+if(args.benchFL):
     #Bench original FL
     workflow.add_task(
         "Rscript src/full_lenfth_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
