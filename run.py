@@ -181,11 +181,11 @@ FL_even_bench="output/benchmarks/even/FL/FL_full_comparisons.RData"
 FL_novel_bench_out="output/benchmarks/novel/FL/"
 FL_novel_bench="output/benchmarks/novel/FL/FL_full_comparisons.RData"
 
-FL_novel_holdout1_out="output/benchmarks/holdout1/FL/"
-FL_novel_holdout1="output/benchmarks/holdout1/FL/FL_full_comparisons.RData"
+FL_holdout1_bench_out="output/benchmarks/holdout1/FL/"
+FL_holdout1_bench="output/benchmarks/holdout1/FL/FL_full_comparisons.RData"
 
-FL_novel_holdout2_out="output/benchmarks/holdout2/FL/"
-FL_novel_holdout2="output/benchmarks/holdout2/FL/FL_full_comparisons.RData"
+FL_holdout2_bench_out="output/benchmarks/holdout2/FL/"
+FL_holdout2_bench="output/benchmarks/holdout2/FL/FL_full_comparisons.RData"
 
 
 oligos_v4v5=os.path.join(args.paraDir, "input/primers/V4V5.oligos")
