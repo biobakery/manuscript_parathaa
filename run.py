@@ -370,12 +370,12 @@ workflow.add_task(
 
 ## Filter the reads to minimum length of 200
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp1.fasta; mv temp1.fasta [depends[0]]",
     depends=V1V2_syn_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp2.fasta; mv temp2.fasta [depends[0]]",
     depends=V4V5_syn_reads
 )
 
@@ -397,12 +397,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp3.fasta; mv temp3.fasta [depends[0]]",
     depends=V1V2_novel_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp4.fasta; mv temp4.fasta [depends[0]]",
     depends=V4V5_novel_reads
 )
 
@@ -425,12 +425,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp5.fasta; mv temp5.fasta [depends[0]]",
     depends=V1V2_even_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp6.fasta; mv temp6.fasta [depends[0]]",
     depends=V4V5_even_reads
 )
 
@@ -453,12 +453,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp7.fasta; mv temp7.fasta [depends[0]]",
     depends=V1V2_holdout1_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp7.fasta; mv temp7.fasta [depends[0]]",
     depends=V4V5_holdout1_reads
 )
 
@@ -481,12 +481,12 @@ workflow.add_task(
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp8.fasta; mv temp8.fasta [depends[0]]",
     depends=V1V2_holdout2_reads
 )
 
 workflow.add_task(
-    "seqkit seq --min-len 200 [depends[0]] > [depends[0]]",
+    "seqkit seq --min-len 200 [depends[0]] > temp9.fasta; mv temp9.fasta [depends[0]]",
     depends=V4V5_holdout2_reads
 )
 
@@ -583,23 +583,23 @@ if(not args.sensitive):
     )
     if(args.benchFL):
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp10.fasta; mv temp10.fasta [depends[0]]",
             depends=FL_syn_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp11.fasta; mv temp11.fasta [depends[0]]",
             depends=FL_even_genus_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp12.fasta; mv temp12.fasta [depends[0]]",
             depends=FL_novel_genus_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp13.fasta; mv temp13.fasta [depends[0]]",
             depends=FL_holdout1_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp14.fasta; mv temp14.fasta [depends[0]]",
             depends=FL_holdout2_reads
         )
 
@@ -735,23 +735,23 @@ elif(args.sensitive):
     #run full length bench mark assignments if its set
     if(args.benchFL):
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp15.fasta; mv temp15.fasta [depends[0]]",
             depends=FL_syn_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp16.fasta; mv temp16.fasta [depends[0]]",
             depends=FL_even_genus_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp17.fasta; mv temp17.fasta [depends[0]]",
             depends=FL_novel_genus_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > mv temp18.fasta; mv temp18.fasta [depends[0]]",
             depends=FL_holdout1_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp19.fasta; mv temp19.fasta [depends[0]]",
             depends=FL_holdout2_reads
         )
         # original
