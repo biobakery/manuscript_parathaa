@@ -73,6 +73,9 @@ prev_test_reads <- read.table(file=opts$q)
 taxdata_filt_filt <- taxdata_filt %>% filter(!AccID %in% prev_test_reads$V1)
 
 
+#remove euks
+taxdata_filt_filt <- taxdata_filt_filt %>% filter(Kingdom!="Eukaryota")
+
 ### sample 20,000 sequences then generate two datasets
 set.seed(1995)
 hold_out_querys <- sample(taxdata_filt_filt$AccID, size=20000, replace=F)

@@ -63,10 +63,14 @@ suppressWarnings({
 
 ## Additional changes (getting rid of subspecies)
 taxdata <- SILVA.species.editor(taxdata)
+#must have a species assignment
 taxdata <- taxdata %>% filter(!is.na(Species))
 
 ### Sample so there is only 1 query per genera and that sequence is not in the seed database
 taxdata_filt <- taxdata %>% filter(!primaryAccession %in% seedTax$primaryaccession)
+
+### Remove euks 
+taxdata_filt <- taxdata_filt %>% filter(Kingdom!="Eukaryota")
 
 set.seed(1995)
 genera_sampling <- taxdata_filt %>% group_by(Genus) %>% sample_n(size=1) %>% ungroup()

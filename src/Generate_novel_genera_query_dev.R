@@ -64,6 +64,10 @@ suppressWarnings({
 ## Additional changes (getting rid of subspecies)
 taxdata <- SILVA.species.editor(taxdata)
 
+#remove taxa without species assignments
+taxdata <- taxdata %>% filter(!is.na(Species))
+
+
 #filter it to the taxa that are found in see
 taxdata_seed <- taxdata %>% filter(primaryAccession %in% SeedTax$primaryAccession)
 
@@ -71,6 +75,8 @@ taxdata_seed <- taxdata %>% filter(primaryAccession %in% SeedTax$primaryAccessio
 Seed_Genera <- unique(taxdata_seed$Genus)
 
 
+#remove euks
+taxdata <- taxdata %>% filter(Kingdom!="Eukaryota")
 
 non_seed_Genera <- taxdata %>% filter(!Genus %in% Seed_Genera)
 
