@@ -846,7 +846,7 @@ workflow.add_task(
 if(args.benchFL):
     #Bench original FL
     workflow.add_task(
-        "Rscript src/full_lenfth_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
+        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
         depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax],
         args=[args.paraDir, FL_original_bench_out],
         targets=[FL_original_bench],
@@ -855,7 +855,7 @@ if(args.benchFL):
     )
     #Bench even FL
     workflow.add_task(
-        "Rscript src/full_lenfth_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
+        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
         depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax],
         args=[args.paraDir, FL_even_bench_out],
         targets=[FL_even_bench],
@@ -863,7 +863,7 @@ if(args.benchFL):
     )
     #Bench novel FL
     workflow.add_task(
-        "Rscript src/full_lenfth_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
+        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
         depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax],
         args=[args.paraDir, FL_novel_bench_out],
         targets=[FL_novel_bench],
@@ -871,7 +871,7 @@ if(args.benchFL):
     )
     #Bench holdout1 FL
     workflow.add_task(
-        "Rscript src/full_lenfth_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
+        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
         depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax],
         args=[args.paraDir, FL_holdout1_bench_out],
         targets=[FL_holdout1_bench],
@@ -879,7 +879,7 @@ if(args.benchFL):
     )
     #Bench holdout2 FL
     workflow.add_task(
-        "Rscript src/full_lenfth_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
+        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
         depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax],
         args=[args.paraDir, FL_holdout2_bench_out],
         targets=[FL_holdout2_bench],
