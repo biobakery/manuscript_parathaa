@@ -8,8 +8,8 @@ require(docopt)
 Options:
   -p directory where parathaa github repo is cloned
   --dada_db_FL location of DADA2 db
-  --paraAssign
-  --query
+  --paraAssign location of parathaa assignments
+  --query location of query reads 
   -t input taxonomy
   -o output
   -s seed_data
@@ -42,12 +42,13 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
                                DADAdb, inFileTaxdata, inFileSeedDB){
   
   dir.create(outputDir, recursive = T, showWarnings = F)
-  
+
+  message(parathaaFile)
   # Read in parathaa data
   parathaaData <- read.delim(
     parathaaFile,
     sep='\t', fill=T, stringsAsFactors = F, header=T)
-  
+  message("DONE READING PARATHAA")
   #select only taxonomic data and group by the query.name
   tax_parathaa <- parathaaData %>%
     dplyr::select(query.name, Kingdom, Phylum, Class, Order, Family, Genus, Species) %>%
@@ -278,7 +279,6 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
   write.table(t4, file= file.path(outputDir, paste0("FL", "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
   
 }
-
 
 
 run.full.bench(parathaaFile = opts$paraAssign, 
