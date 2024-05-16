@@ -235,8 +235,6 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
            Genus.parathaa = Genus.x.y,
            Genus.silva = Genus.y.y)
   
-  # Remove seqs with N characters: 
-  compare.synth <- compare.synth %>% filter(!AccID %in% nChars2)
   # save the comparison data
   save(compare.synth, file= file.path(outputDir, paste0("FL", "_full_comparisons.RData")))
   
