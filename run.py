@@ -494,6 +494,7 @@ workflow.add_task(
 
 #run parathaa on V1V2 synthetic using default specific mode
 if(not args.sensitive):
+    print("Running in default (specific) mode")
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
         depends=[V1V2_db, V1V2_syn_reads],
@@ -644,7 +645,7 @@ if(not args.sensitive):
             name="Assigning taxonomy to V4V5 holdout 2 reads"
         )
 elif(args.sensitive):
-    
+    print(message("Running in sensitive mode"))
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
         depends=[V1V2_db, V1V2_syn_reads],
@@ -653,7 +654,7 @@ elif(args.sensitive):
         name="Assigning taxonomy to V1V2 synthetic reads"
     )
 
-    #run parathaa on V4V5 synthetic using defualt specific mode
+
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
