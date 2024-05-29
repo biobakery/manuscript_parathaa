@@ -645,7 +645,7 @@ if(not args.sensitive):
             name="Assigning taxonomy to FL holdout 2 reads (default)"
         )
 elif(args.sensitive):
-    print(message("Running in sensitive mode"))
+    print("Running in sensitive mode")
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
         depends=[V1V2_db, V1V2_syn_reads],
