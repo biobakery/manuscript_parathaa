@@ -748,7 +748,7 @@ elif(args.sensitive):
             depends=FL_novel_genus_reads
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > mv temp18.fasta; mv temp18.fasta [depends[0]]",
+            "seqkit seq --min-len 1000 [depends[0]] > temp18.fasta; mv temp18.fasta [depends[0]]",
             depends=FL_holdout1_reads
         )
         workflow.add_task(
