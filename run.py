@@ -44,10 +44,28 @@ workflow.add_argument(
 
 )
 
+workflow.add_argument(
+    name="dada2_minboot",
+    desc="minimum_bootstrap for DADA2 full length assignment",
+    default=0.8
+)
+
+workflow.add_argument(
+    name="skipBench",
+    desc="set this to skip benchmarking",
+    action="store_true"
+)
+
+
 
 
 # Parsing the workflow arguments
 args = workflow.parse_args()
+
+if(args.sensitive):
+    add_sens=" --sensitive"
+else:
+    add_sens=""
 
 #add target files
 silva_seed_db="input/silva.seed_v138_1.align"
@@ -490,23 +508,21 @@ workflow.add_task(
     depends=V4V5_holdout2_reads
 )
 
-
-
-#run parathaa on V1V2 synthetic using default specific mode
-if(not args.sensitive):
-    print("Running in default (specific) mode")
+if(not args.skipBench):
+    ### RUN PARATHAA
+    #run parathaa on V1V2 synthetic using default specific mode
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V1V2_db, V1V2_syn_reads],
         targets=V1V2_para_taxa,
         args=[args.threads,V1V2_assignments],
         name="Assigning taxonomy to V1V2 synthetic reads (default)"
     )
 
-    #run parathaa on V4V5 synthetic using defualt specific mode
+        #run parathaa on V4V5 synthetic using defualt specific mode
 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V4V5_db, V4V5_syn_reads],
         targets=V4V5_para_taxa,
         args=[args.threads, V4V5_assignments],
@@ -514,9 +530,9 @@ if(not args.sensitive):
     )
 
 
-    # Run parathaa on V1V2 and V4V5 even genus
+        # Run parathaa on V1V2 and V4V5 even genus
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",add_sens,
         depends=[V1V2_db, V1V2_even_reads],
         targets=V1V2_even_tax,
         args=[args.threads,V1V2_even_assignments],
@@ -524,7 +540,7 @@ if(not args.sensitive):
     )
 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V4V5_db, V4V5_even_reads],
         targets=V4V5_even_tax,
         args=[args.threads, V4V5_even_assignments],
@@ -532,9 +548,9 @@ if(not args.sensitive):
     )
 
 
-    # Run parathaa on V1V2 and V4V5 novel genus
+        # Run parathaa on V1V2 and V4V5 novel genus
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V1V2_db, V1V2_novel_reads],
         targets=V1V2_novel_tax,
         args=[args.threads,V1V2_novel_assignments],
@@ -542,16 +558,16 @@ if(not args.sensitive):
     )
 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V4V5_db, V4V5_novel_reads],
         targets=V4V5_novel_tax,
         args=[args.threads, V4V5_novel_assignments],
         name="Assigning taxonomy to V4V5 novel genus reads (default)"
     ) 
 
-    # Run parathaa on V1V2 and V4V5 holdout1 
+        # Run parathaa on V1V2 and V4V5 holdout1 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V1V2_db, V1V2_holdout1_reads],
         targets=V1V2_holdout1_tax,
         args=[args.threads,V1V2_holdout1_assignments],
@@ -559,16 +575,16 @@ if(not args.sensitive):
     )
 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V4V5_db, V4V5_holdout1_reads],
         targets=V4V5_holdout1_tax,
         args=[args.threads, V4V5_holdout1_assignments],
         name="Assigning taxonomy to V4V5 holdout 1 reads (default)"
     )
 
-    # Run parathaa on V1V2 and V4V5 holdout2
+        # Run parathaa on V1V2 and V4V5 holdout2
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V1V2_db, V1V2_holdout2_reads],
         targets=V1V2_holdout2_tax,
         args=[args.threads,V1V2_holdout2_assignments],
@@ -576,7 +592,7 @@ if(not args.sensitive):
     )
 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V4V5_db, V4V5_holdout2_reads],
         targets=V4V5_holdout2_tax,
         args=[args.threads, V4V5_holdout2_assignments],
@@ -606,286 +622,133 @@ if(not args.sensitive):
 
         # original
         workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
             depends=[FL_db, FL_syn_reads],
             targets=FL_original_tax,
             args=[args.threads, FL_original_assignments],
             name="Assigning taxonomy to original FL reads (default)"
         )
-        #Even
+            #Even
         workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
             depends=[FL_db, FL_even_genus_reads],
             targets=FL_even_tax,
             args=[args.threads, FL_even_assignments],
             name="Assigning taxonomy to FL even reads (default)"
         )
-        #Novel
+            #Novel
         workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
             depends=[FL_db, FL_novel_genus_reads],
             targets=FL_novel_tax,
             args=[args.threads, FL_novel_assignments],
             name="Assigning taxonomy to FL novel reads (default)"
         )
-        #Holdout1
+            #Holdout1
         workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
             depends=[FL_db, FL_holdout1_reads],
             targets=FL_holdout1_tax,
             args=[args.threads, FL_holdout1_assignment],
             name="Assigning taxonomy to FL holdout 1 reads (default)"
         )
-        #Holdout2
+            #Holdout2
         workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",
+            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
             depends=[FL_db, FL_holdout2_reads],
             targets=FL_holdout2_tax,
             args=[args.threads, FL_holdout2_assignment],
             name="Assigning taxonomy to FL holdout 2 reads (default)"
         )
-elif(args.sensitive):
-    print("Running in sensitive mode")
+
+    # Run script to benchmark original V1V2 and V4V5 synthetic data
+
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V1V2_db, V1V2_syn_reads],
-        targets=V1V2_para_taxa,
-        args=[args.threads,V1V2_assignments],
-        name="Assigning taxonomy to V1V2 synthetic reads (sensitive)"
+        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_para_taxa, V1V2_para_taxa, V4V5_syn_reads, V1V2_syn_reads, silva_taxonomy_file, silva_seed_tax],
+        args=[args.paraDir, original_bench_out],
+        targets=[original_V1V2_bench, original_V4V5_bench],
+        name="Benchmarking synthetic assignments"
     )
 
-
-
+    #run script to benchmark even genus data
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V4V5_db, V4V5_syn_reads],
-        targets=V4V5_para_taxa,
-        args=[args.threads, V4V5_assignments],
-        name="Assigning taxonomy to V4V5 synthetic reads (sensitive)"
+        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_even_tax, V1V2_even_tax, V4V5_even_reads, V1V2_even_reads, silva_taxonomy_file, silva_seed_tax],
+        args=[args.paraDir, even_bench_out],
+        targets=[even_V1V2_bench, even_V4V5_bench],
+        name="Benchmarking even genus assignments"
+
     )
 
-
-    # Run parathaa on V1V2 and V4V5 even genus
+    #run script to benchmark novel genus data
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V1V2_db, V1V2_even_reads],
-        targets=V1V2_even_tax,
-        args=[args.threads,V1V2_even_assignments],
-        name="Assigning taxonomy to V1V2 even genus reads (sensitive)"
+        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_novel_tax, V1V2_novel_tax, V4V5_novel_reads, V1V2_novel_reads, silva_taxonomy_file, silva_seed_tax],
+        args=[args.paraDir, novel_bench_out],
+        targets=[novel_V1V2_bench, novel_V4V5_bench],
+        name="Benchmarking novel genus assignments"
     )
 
+    #run script to benchmark holdout 1
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V4V5_db, V4V5_even_reads],
-        targets=V4V5_even_tax,
-        args=[args.threads, V4V5_even_assignments],
-        name="Assigning taxonomy to V4V5 even genus reads (sensitive)"
-    )
-
-
-    # Run parathaa on V1V2 and V4V5 novel genus
-    workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V1V2_db, V1V2_novel_reads],
-        targets=V1V2_novel_tax,
-        args=[args.threads,V1V2_novel_assignments],
-        name="Assigning taxonomy to V1V2 novel genus reads (sensitive)"
+        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout1_tax, V1V2_holdout1_tax, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
+        args=[args.paraDir, holdout1_bench_out],
+        targets=[holdout1_V1V2_bench, holdout1_V4V5_bench],
+        name="Benchmarking holout 1 assignments"
     )
 
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V4V5_db, V4V5_novel_reads],
-        targets=V4V5_novel_tax,
-        args=[args.threads, V4V5_novel_assignments],
-        name="Assigning taxonomy to V4V5 novel genus reads (sensitive)"
+        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout2_tax, V1V2_holdout2_tax, V4V5_holdout2_reads, V1V2_holdout2_reads, silva_taxonomy_file, silva_seed_tax],
+        args=[args.paraDir, holdout2_bench_out],
+        targets=[holdout2_V1V2_bench, holdout2_V4V5_bench],
+        name="Benchmarking holout 1 assignments"
     )
 
-    # Run parathaa on V1V2 and V4V5 holdout1 
-    workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V1V2_db, V1V2_holdout1_reads],
-        targets=V1V2_holdout1_tax,
-        args=[args.threads,V1V2_holdout1_assignments],
-        name="Assigning taxonomy to V1V2 holdout 1 reads (sensitive)"
-    )
-
-    workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V4V5_db, V4V5_holdout1_reads],
-        targets=V4V5_holdout1_tax,
-        args=[args.threads, V4V5_holdout1_assignments],
-        name="Assigning taxonomy to V4V5 holdout 1 reads (sensitive)"
-    )
-
-    # Run parathaa on V1V2 and V4V5 holdout2
-    workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V1V2_db, V1V2_holdout2_reads],
-        targets=V1V2_holdout2_tax,
-        args=[args.threads,V1V2_holdout2_assignments],
-        name="Assigning taxonomy to V1V2 holdout 2 reads (sensitive)"
-    )
-
-    workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-        depends=[V4V5_db, V4V5_holdout2_reads],
-        targets=V4V5_holdout2_tax,
-        args=[args.threads, V4V5_holdout2_assignments],
-        name="Assigning taxonomy to V4V5 holdout 2 reads (sensitive)"
-    )
-    #run full length bench mark assignments if its set
     if(args.benchFL):
+        #Bench original FL
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp15.fasta; mv temp15.fasta [depends[0]]",
-            depends=FL_syn_reads
+            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax],
+            args=[args.paraDir, FL_original_bench_out, args.dada2_minboot],
+            targets=[FL_original_bench],
+            name="Benchmarking Full length original dataset"
+
         )
+        #Bench even FL
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp16.fasta; mv temp16.fasta [depends[0]]",
-            depends=FL_even_genus_reads
+            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax],
+            args=[args.paraDir, FL_even_bench_out, args.dada2_minboot],
+            targets=[FL_even_bench],
+            name="Benchmarking Full length even dataset"
         )
+        #Bench novel FL
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp17.fasta; mv temp17.fasta [depends[0]]",
-            depends=FL_novel_genus_reads
+            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax],
+            args=[args.paraDir, FL_novel_bench_out, args.dada2_minboot],
+            targets=[FL_novel_bench],
+            name="Benchmarking Full length novel dataset"
         )
+        #Bench holdout1 FL
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp18.fasta; mv temp18.fasta [depends[0]]",
-            depends=FL_holdout1_reads
+            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4] -b [args[2]]",
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax],
+            args=[args.paraDir, FL_holdout1_bench_out, args.dada2_minboot],
+            targets=[FL_holdout1_bench],
+            name="Benchmarking Full length holdout 1 dataset"
         )
+        #Bench holdout2 FL
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp19.fasta; mv temp19.fasta [depends[0]]",
-            depends=FL_holdout2_reads
+            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax],
+            args=[args.paraDir, FL_holdout2_bench_out, args.dada2_minboot],
+            targets=[FL_holdout2_bench],
+            name="Benchmarking Full length holdout 2 dataset"
         )
-        # original
-        workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-            depends=[FL_db, FL_syn_reads],
-            targets=FL_original_tax,
-            args=[args.threads, FL_original_assignments],
-            name="Assigning taxonomy to FL original reads (sensitive)"
-        )
-        #Even
-        workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-            depends=[FL_db, FL_even_genus_reads],
-            targets=FL_even_tax,
-            args=[args.threads, FL_even_assignments],
-            name="Assigning taxonomy to FL even reads (sensitive)"
-        )
-        #Novel
-        workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-            depends=[FL_db, FL_novel_genus_reads],
-            targets=FL_novel_tax,
-            args=[args.threads, FL_novel_assignments],
-            name="Assigning taxonomy to FL novel reads (sensitive)"
-        )
-        #Holdout1
-        workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-            depends=[FL_db, FL_holdout1_reads],
-            targets=FL_holdout1_tax,
-            args=[args.threads, FL_holdout1_assignment],
-            name="Assigning taxonomy to FL holdout 1 reads (sensitive)"
-        )
-        #Holdout2
-        workflow.add_task(
-            "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]] --sensitive",
-            depends=[FL_db, FL_holdout2_reads],
-            targets=FL_holdout2_tax,
-            args=[args.threads, FL_holdout2_assignment],
-            name="Assigning taxonomy to FL holdout 2 reads (sensitive)"
-        )
-
-
-
-# Run script to benchmark original V1V2 and V4V5 synthetic data
-
-workflow.add_task(
-    "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
-    depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_para_taxa, V1V2_para_taxa, V4V5_syn_reads, V1V2_syn_reads, silva_taxonomy_file, silva_seed_tax],
-    args=[args.paraDir, original_bench_out],
-    targets=[original_V1V2_bench, original_V4V5_bench],
-    name="Benchmarking synthetic assignments"
-)
-
-#run script to benchmark even genus data
-workflow.add_task(
-    "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
-    depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_even_tax, V1V2_even_tax, V4V5_even_reads, V1V2_even_reads, silva_taxonomy_file, silva_seed_tax],
-    args=[args.paraDir, even_bench_out],
-    targets=[even_V1V2_bench, even_V4V5_bench],
-    name="Benchmarking even genus assignments"
-
-)
-
-#run script to benchmark novel genus data
-workflow.add_task(
-    "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
-    depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_novel_tax, V1V2_novel_tax, V4V5_novel_reads, V1V2_novel_reads, silva_taxonomy_file, silva_seed_tax],
-    args=[args.paraDir, novel_bench_out],
-    targets=[novel_V1V2_bench, novel_V4V5_bench],
-    name="Benchmarking novel genus assignments"
-)
-
-#run script to benchmark holdout 1
-workflow.add_task(
-    "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
-    depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout1_tax, V1V2_holdout1_tax, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
-    args=[args.paraDir, holdout1_bench_out],
-    targets=[holdout1_V1V2_bench, holdout1_V4V5_bench],
-    name="Benchmarking holout 1 assignments"
-)
-
-workflow.add_task(
-    "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
-    depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout2_tax, V1V2_holdout2_tax, V4V5_holdout2_reads, V1V2_holdout2_reads, silva_taxonomy_file, silva_seed_tax],
-    args=[args.paraDir, holdout2_bench_out],
-    targets=[holdout2_V1V2_bench, holdout2_V4V5_bench],
-    name="Benchmarking holout 1 assignments"
-)
-
-if(args.benchFL):
-    #Bench original FL
-    workflow.add_task(
-        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
-        depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax],
-        args=[args.paraDir, FL_original_bench_out],
-        targets=[FL_original_bench],
-        name="Benchmarking Full length original dataset"
-
-    )
-    #Bench even FL
-    workflow.add_task(
-        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
-        depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax],
-        args=[args.paraDir, FL_even_bench_out],
-        targets=[FL_even_bench],
-        name="Benchmarking Full length even dataset"
-    )
-    #Bench novel FL
-    workflow.add_task(
-        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
-        depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax],
-        args=[args.paraDir, FL_novel_bench_out],
-        targets=[FL_novel_bench],
-        name="Benchmarking Full length novel dataset"
-    )
-    #Bench holdout1 FL
-    workflow.add_task(
-        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
-        depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax],
-        args=[args.paraDir, FL_holdout1_bench_out],
-        targets=[FL_holdout1_bench],
-        name="Benchmarking Full length holdout 1 dataset"
-    )
-    #Bench holdout2 FL
-    workflow.add_task(
-        "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]]",
-        depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax],
-        args=[args.paraDir, FL_holdout2_bench_out],
-        targets=[FL_holdout2_bench],
-        name="Benchmarking Full length holdout 2 dataset"
-    )
 
 ########### End of benchmarking ###############
 

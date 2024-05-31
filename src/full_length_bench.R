@@ -2,7 +2,7 @@
 require(docopt)
 
 'Usage:
-  full_length_bench.R [-p <parathaa_PATH> --dada_db_FL <dada2_db> -t <input_taxonomy> -o <output> --paraAssign <para_Assignments> --query <query seqs> -s <seed_data>]
+  full_length_bench.R [-p <parathaa_PATH> --dada_db_FL <dada2_db> -t <input_taxonomy> -o <output> --paraAssign <para_Assignments> --query <query seqs> -s <seed_data> -b <min boot>]
   
   
 Options:
@@ -13,6 +13,7 @@ Options:
   -t input taxonomy
   -o output
   -s seed_data
+  -b minboot [default=0.8]
   ]' -> doc
 
 
@@ -39,7 +40,7 @@ source("src/performance.table.R")
 
 ## This is very similar to the variable region function with some exceptions to deal with full length sequences
 run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
-                               DADAdb, inFileTaxdata, inFileSeedDB){
+                               DADAdb, inFileTaxdata, inFileSeedDB, minboot=0.8){
   
   dir.create(outputDir, recursive = T, showWarnings = F)
 
@@ -100,7 +101,8 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
   
   taxa_dada2 <- assignTaxonomy(sequenceFile, 
                          DADAdb,
-                         multithread=TRUE)
+                         multithread=TRUE,
+                         minBoot = minboot)
 
   stopifnot(identical(name.df$sequence, unname(rownames(taxa_dada2))))
   rownames(taxa_dada2) <- name.df$taxaIDs
@@ -284,5 +286,6 @@ run.full.bench(parathaaFile = opts$paraAssign,
                outputDir = opts$o, 
                DADAdb = opts$dada_db_FL, 
                inFileTaxdata = opts$t, 
-               inFileSeedDB = opts$s
+               inFileSeedDB = opts$s,
+               minboot = opts$b
 )
