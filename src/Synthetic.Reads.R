@@ -73,16 +73,3 @@ subsample <- taxdata_seedless %>%
 
 ## Print IDs to file
 readr::write_lines(subsample$AccID, file="input/subsampleIDs_SeedGenera.txt")
-
-##### NOTE: The following should be put into a script:
-
-## Subset fasta file with:
-## faSomeRecords  /Users/mis696/proj/16s-region-checker/input/SILVA_138.1_SSURef_tax_silva.fasta /Users/mis696/proj/parathaa/input/subsampleIDs.txt /Users/mis696/proj/parathaa/input/SILVAsubsample.fasta 
-
-## faSomeRecords  /Users/mis696/proj/16s-region-checker/input/SILVA_138.1_SSURef_tax_silva.fasta /Users/mis696/proj/parathaa/input/subsampleIDs_SeedGeneraV4V5.txt /Users/mis696/proj/parathaa/input/SILVAsubsample_SeedGenera_V4V5.fasta 
-
-## Trim to specific subregion:
-##/Users/mis696/mothur/mothur '#pcr.seqs(fasta = /Users/mis696/proj/parathaa/input/SILVAsubsample_SeedGenera.fasta , oligos=/Users/mis696/proj/parathaa/input/V4V5.oligos.txt, pdiffs=0, rdiffs=0)'
-
-##/Users/mis696/mothur/mothur '#pcr.seqs(fasta = /Users/mis696/proj/parathaa/input/SILVAsubsample_SeedGenera.fasta , oligos=/Users/mis696/proj/parathaa/input/V1V2.oligos.txt, pdiffs=0, rdiffs=0)'
-

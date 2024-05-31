@@ -76,14 +76,43 @@ taxdata_filt_filt <- taxdata_filt %>% filter(!AccID %in% prev_test_reads$V1)
 #remove euks
 taxdata_filt_filt <- taxdata_filt_filt %>% filter(Kingdom!="Eukaryota")
 
-### sample 20,000 sequences then generate two datasets
+### sample 30,000 sequences then generate three datasets
 set.seed(1995)
-hold_out_querys <- sample(taxdata_filt_filt$AccID, size=20000, replace=F)
+hold_out_querys <- sample(taxdata_filt_filt$AccID, size=30000, replace=F)
 
 hold_outs_1 <- hold_out_querys[1:10000]
 hold_outs_2 <- hold_out_querys[10001:20000]
+hold_outs_3 <- hold_out_querys[20001:30000]
 
 
 write.table(hold_outs_1, file = "input/holdout_query1.txt", col.names = F, row.names = F, quote=F)
 write.table(hold_outs_2, file = "input/holdout_query2.txt", col.names = F, row.names = F, quote=F)
+write.table(hold_outs_3, file = "input/holdout_query3.txt", col.names = F, row.names = F, quote=F)
+
+### non-random holdout testing replicate to 
+
+#taxdata seedless are taxa that are not in the seed database are not in the original benchmark
+#but have genus that are contained within the seed database (just like how the original benchmark was done)
+#only issue with this is that in some cases we will have less sequences from genera that have a low number of sequences within them 
+#(i.e. missing those that have < 5 reps)
+
+taxdata_seedless <- taxdata_filt_filt %>% 
+  filter(!primaryAccession %in% seedTax$primaryAccession) %>%
+  ## Subset to Genera in Seed for now
+  filter(Genus %in% unique(seedTax$Genus))
+
+GenusCounts <- taxdata_seedless %>% dplyr::count(Genus)
+GenusCounts$subsetN <- pmin(pmax(20, ceiling(GenusCounts$n*0.01)), GenusCounts$n)
+## Include only genera from seed for now
+GenusCounts <- GenusCounts %>% filter(Genus %in% unique(seedTax$Genus))
+
+
+library(purrr)
+set.seed(978)
+subsample <- taxdata_seedless %>% 
+  group_split(Genus) %>% 
+  map2_dfr(GenusCounts$subsetN, ~ slice_sample(.x, n = .y))
+
+## Print IDs to file
+readr::write_lines(subsample$AccID, file="input/original_holdout1.txt")
 
