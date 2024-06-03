@@ -935,7 +935,7 @@ if(not args.skipBench):
         )
         #Bench holdout1 FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4] -b [args[2]]",
+            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax],
             args=[args.paraDir, FL_holdout1_bench_out, args.dadaMinBoot],
             targets=[FL_holdout1_bench],
