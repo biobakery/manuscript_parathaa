@@ -45,7 +45,7 @@ workflow.add_argument(
 )
 
 workflow.add_argument(
-    name="dada2_minboot",
+    name="dadaMinBoot",
     desc="minimum_bootstrap for DADA2 full length assignment",
     default=0.8
 )
@@ -912,7 +912,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax],
-            args=[args.paraDir, FL_original_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_original_bench_out, args.dadaMinBoot],
             targets=[FL_original_bench],
             name="Benchmarking Full length original dataset"
 
@@ -921,7 +921,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax],
-            args=[args.paraDir, FL_even_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_even_bench_out, args.dadaMinBoot],
             targets=[FL_even_bench],
             name="Benchmarking Full length even dataset"
         )
@@ -929,7 +929,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax],
-            args=[args.paraDir, FL_novel_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_novel_bench_out, args.dadaMinBoot],
             targets=[FL_novel_bench],
             name="Benchmarking Full length novel dataset"
         )
@@ -937,7 +937,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax],
-            args=[args.paraDir, FL_holdout1_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_holdout1_bench_out, args.dadaMinBoot],
             targets=[FL_holdout1_bench],
             name="Benchmarking Full length holdout 1 dataset"
         )
@@ -945,7 +945,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax],
-            args=[args.paraDir, FL_holdout2_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_holdout2_bench_out, args.dadaMinBoot],
             targets=[FL_holdout2_bench],
             name="Benchmarking Full length holdout 2 dataset"
         )
@@ -953,7 +953,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads, silva_seed_tax],
-            args=[args.paraDir, FL_holdout3_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_holdout3_bench_out, args.dadaMinBoot],
             targets=[FL_holdout3_bench],
             name="Benchmarking Full length holdout 2 dataset"
         )
@@ -961,7 +961,7 @@ if(not args.skipBench):
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdoutOG_tax, FL_holdoutOG_reads, silva_seed_tax],
-            args=[args.paraDir, FL_holdoutOG_bench_out, args.dada2_minboot],
+            args=[args.paraDir, FL_holdoutOG_bench_out, args.dadaMinBoot],
             targets=[FL_holdoutOG_bench],
             name="Benchmarking Full length holdout original dataset"
         )
