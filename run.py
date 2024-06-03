@@ -446,7 +446,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/SILVAsubsample_SeedGenera.pcr.fasta [targets[0]]",
-   depends=FL_syn_reads,
+   depends=[FL_syn_reads, V4V5_syn_reads],
    args=oligos_v1v2,
    targets=V1V2_syn_reads,
    name="generating v1v2 synthetic reads"
@@ -474,7 +474,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_novel_genus.pcr.fasta [targets[0]]",
-   depends=FL_novel_genus_reads,
+   depends=[FL_novel_genus_reads, V4V5_novel_reads],
    args=oligos_v1v2,
    targets=V1V2_novel_reads,
    name="generating v1v2 novel reads"
@@ -502,7 +502,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_even_genus.pcr.fasta [targets[0]]",
-   depends=FL_even_genus_reads,
+   depends=[FL_even_genus_reads, V4V5_even_reads],
    args=oligos_v1v2,
    targets=V1V2_even_reads,
    name="generating v1v2 even reads"
@@ -530,7 +530,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout1.pcr.fasta [targets[0]]",
-   depends=FL_holdout1_reads,
+   depends=[FL_holdout1_reads, V4V5_holdout1_reads],
    args=oligos_v1v2,
    targets=V1V2_holdout1_reads,
    name="generating v1v2 holdout1 reads"
@@ -558,7 +558,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
-   depends=FL_holdout2_reads,
+   depends=[FL_holdout2_reads, V4V5_holdout2_reads],
    args=oligos_v1v2,
    targets=V1V2_holdout2_reads,
    name="generating v1v2 holdout2 reads"
@@ -585,7 +585,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
-   depends=FL_holdout3_reads,
+   depends=[FL_holdout3_reads, V4V5_holdout3_reads],
    args=oligos_v1v2,
    targets=V1V2_holdout3_reads,
    name="generating v1v2 holdout2 reads"
@@ -612,7 +612,7 @@ workflow.add_task(
 
 workflow.add_task(
    "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
-   depends=FL_holdoutOG_reads,
+   depends=[FL_holdoutOG_reads, V4V5_holdoutOG_reads],
    args=oligos_v1v2,
    targets=V1V2_holdoutOG_reads,
    name="generating v1v2 holdout original reads"
