@@ -652,7 +652,7 @@ if(not args.skipBench):
 
         # Run parathaa on V1V2 and V4V5 even genus
     workflow.add_task(
-        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]",add_sens,
+        "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
         depends=[V1V2_db, V1V2_even_reads],
         targets=V1V2_even_tax,
         args=[args.threads,V1V2_even_assignments],
