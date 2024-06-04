@@ -576,7 +576,7 @@ workflow.add_task(
 
 #PCR Holdout3
 workflow.add_task(
-   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
+   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout3.pcr.fasta [targets[0]]",
    depends=FL_holdout3_reads,
    args=oligos_v4v5,
    targets=V4V5_holdout3_reads,
@@ -584,11 +584,11 @@ workflow.add_task(
 )
 
 workflow.add_task(
-   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
+   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout3.pcr.fasta [targets[0]]",
    depends=[FL_holdout3_reads, V4V5_holdout3_reads],
    args=oligos_v1v2,
    targets=V1V2_holdout3_reads,
-   name="generating v1v2 holdout2 reads"
+   name="generating v1v2 holdout3 reads"
 )
 
 workflow.add_task(
@@ -603,7 +603,7 @@ workflow.add_task(
 
 #PCR Holdout original
 workflow.add_task(
-   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
+   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdoutOG.pcr.fasta [targets[0]]",
    depends=FL_holdoutOG_reads,
    args=oligos_v4v5,
    targets=V4V5_holdoutOG_reads,
@@ -611,7 +611,7 @@ workflow.add_task(
 )
 
 workflow.add_task(
-   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdout2.pcr.fasta [targets[0]]",
+   "mothur '#pcr.seqs(fasta=[depends[0]], oligos=[args[0]], pdiffs=0, rdiffs=0)'; mv input/FL_holdoutOG.pcr.fasta [targets[0]]",
    depends=[FL_holdoutOG_reads, V4V5_holdoutOG_reads],
    args=oligos_v1v2,
    targets=V1V2_holdoutOG_reads,
@@ -643,7 +643,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_syn_reads],
+        depends=[V4V5_db, V4V5_syn_reads, V1V2_para_taxa],
         targets=V4V5_para_taxa,
         args=[args.threads, V4V5_assignments],
         name="Assigning taxonomy to V4V5 synthetic reads"
@@ -661,7 +661,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_even_reads],
+        depends=[V4V5_db, V4V5_even_reads, V1V2_even_tax],
         targets=V4V5_even_tax,
         args=[args.threads, V4V5_even_assignments],
         name="Assigning taxonomy to V4V5 even genus reads"
@@ -679,7 +679,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_novel_reads],
+        depends=[V4V5_db, V4V5_novel_reads, V1V2_novel_tax],
         targets=V4V5_novel_tax,
         args=[args.threads, V4V5_novel_assignments],
         name="Assigning taxonomy to V4V5 novel genus reads"
@@ -696,7 +696,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_holdout1_reads],
+        depends=[V4V5_db, V4V5_holdout1_reads, V1V2_holdout1_tax],
         targets=V4V5_holdout1_tax,
         args=[args.threads, V4V5_holdout1_assignments],
         name="Assigning taxonomy to V4V5 holdout 1 reads"
@@ -713,7 +713,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_holdout2_reads],
+        depends=[V4V5_db, V4V5_holdout2_reads, V1V2_holdout2_tax],
         targets=V4V5_holdout2_tax,
         args=[args.threads, V4V5_holdout2_assignments],
         name="Assigning taxonomy to V4V5 holdout 2 reads"
@@ -731,7 +731,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_holdout3_reads],
+        depends=[V4V5_db, V4V5_holdout3_reads, V1V2_holdout3_tax],
         targets=V4V5_holdout3_tax,
         args=[args.threads, V4V5_holdout3_assignments],
         name="Assigning taxonomy to V4V5 holdout 3 reads"
@@ -748,7 +748,7 @@ if(not args.skipBench):
 
     workflow.add_task(
         "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-        depends=[V4V5_db, V4V5_holdoutOG_reads],
+        depends=[V4V5_db, V4V5_holdoutOG_reads, V1V2_holdoutOG_tax],
         targets=V4V5_holdoutOG_tax,
         args=[args.threads, V4V5_holdoutOG_assignments],
         name="Assigning taxonomy to V4V5 holdout original reads"
@@ -787,7 +787,7 @@ if(not args.skipBench):
         # original
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_syn_reads],
+            depends=[FL_db, FL_syn_reads, V1V2_para_taxa, V4V5_para_taxa],
             targets=FL_original_tax,
             args=[args.threads, FL_original_assignments],
             name="Assigning taxonomy to original FL reads"
@@ -795,7 +795,7 @@ if(not args.skipBench):
             #Even
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_even_genus_reads],
+            depends=[FL_db, FL_even_genus_reads, V1V2_even_tax, V4V5_even_tax],
             targets=FL_even_tax,
             args=[args.threads, FL_even_assignments],
             name="Assigning taxonomy to FL even reads"
@@ -803,7 +803,7 @@ if(not args.skipBench):
             #Novel
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_novel_genus_reads],
+            depends=[FL_db, FL_novel_genus_reads, V1V2_novel_tax, V4V5_novel_tax],
             targets=FL_novel_tax,
             args=[args.threads, FL_novel_assignments],
             name="Assigning taxonomy to FL novel reads"
@@ -811,7 +811,7 @@ if(not args.skipBench):
             #Holdout1
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdout1_reads],
+            depends=[FL_db, FL_holdout1_reads, V1V2_holdout1_tax, V4V5_holdout1_tax],
             targets=FL_holdout1_tax,
             args=[args.threads, FL_holdout1_assignment],
             name="Assigning taxonomy to FL holdout 1 reads"
@@ -819,7 +819,7 @@ if(not args.skipBench):
             #Holdout2
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdout2_reads],
+            depends=[FL_db, FL_holdout2_reads, V1V2_holdout2_tax, V4V5_holdout2_tax],
             targets=FL_holdout2_tax,
             args=[args.threads, FL_holdout2_assignment],
             name="Assigning taxonomy to FL holdout 2 reads"
@@ -827,7 +827,7 @@ if(not args.skipBench):
                     #Holdout3
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdout3_reads],
+            depends=[FL_db, FL_holdout3_reads, V1V2_holdout3_tax, V4V5_holdout3_tax],
             targets=FL_holdout3_tax,
             args=[args.threads, FL_holdout3_assignment],
             name="Assigning taxonomy to FL holdout 3 reads"
@@ -835,7 +835,7 @@ if(not args.skipBench):
         #Holdout original
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdoutOG_reads],
+            depends=[FL_db, FL_holdoutOG_reads, V1V2_holdoutOG_tax, V4V5_holdoutOG_tax],
             targets=FL_holdoutOG_tax,
             args=[args.threads, FL_holdoutOG_assignment],
             name="Assigning taxonomy to FL holdout original reads"
@@ -911,7 +911,7 @@ if(not args.skipBench):
         #Bench original FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax, original_V1V2_bench],
             args=[args.paraDir, FL_original_bench_out, args.dadaMinBoot],
             targets=[FL_original_bench],
             name="Benchmarking Full length original dataset"
@@ -920,7 +920,7 @@ if(not args.skipBench):
         #Bench even FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax, even_V1V2_bench],
             args=[args.paraDir, FL_even_bench_out, args.dadaMinBoot],
             targets=[FL_even_bench],
             name="Benchmarking Full length even dataset"
@@ -928,7 +928,7 @@ if(not args.skipBench):
         #Bench novel FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax, novel_V1V2_bench],
             args=[args.paraDir, FL_novel_bench_out, args.dadaMinBoot],
             targets=[FL_novel_bench],
             name="Benchmarking Full length novel dataset"
@@ -936,7 +936,7 @@ if(not args.skipBench):
         #Bench holdout1 FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax, holdout1_V1V2_bench],
             args=[args.paraDir, FL_holdout1_bench_out, args.dadaMinBoot],
             targets=[FL_holdout1_bench],
             name="Benchmarking Full length holdout 1 dataset"
@@ -944,7 +944,7 @@ if(not args.skipBench):
         #Bench holdout2 FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax, holdout2_V1V2_bench],
             args=[args.paraDir, FL_holdout2_bench_out, args.dadaMinBoot],
             targets=[FL_holdout2_bench],
             name="Benchmarking Full length holdout 2 dataset"
@@ -952,7 +952,7 @@ if(not args.skipBench):
         #Bench holdout3 FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads, silva_seed_tax, holdout3_V1V2_bench],
             args=[args.paraDir, FL_holdout3_bench_out, args.dadaMinBoot],
             targets=[FL_holdout3_bench],
             name="Benchmarking Full length holdout 2 dataset"
@@ -960,7 +960,7 @@ if(not args.skipBench):
         
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdoutOG_tax, FL_holdoutOG_reads, silva_seed_tax],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdoutOG_tax, FL_holdoutOG_reads, silva_seed_tax, holdoutOG_V1V2_bench],
             args=[args.paraDir, FL_holdoutOG_bench_out, args.dadaMinBoot],
             targets=[FL_holdoutOG_bench],
             name="Benchmarking Full length holdout original dataset"
