@@ -317,6 +317,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   t4 <- performance.table(compare.synth_adjust, "Genus")
   write.table(t4, file= file.path(outputDir, paste0(regionName, "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
   
+  save(compare.synth_adjust, file= file.path(outputDir, paste0(regionName, "_full_comparisons_adjust.RData")))
 }
 
 ## Define variables used across all function calls
