@@ -176,12 +176,12 @@ V4V5_holdoutOG_tax="output/V4V5_holdoutOG/taxonomic_assignments.tsv"
 original_bench_out="output/benchmarks/original/"
 original_V1V2_bench="output/benchmarks/original/Figures/synth_mult_arc/V1V2_full_comparisons.RData"
 original_V4V5_bench="output/benchmarks/original/Figures/synth_mult_arc/V4V5_full_comparisons.RData"
-FL_original_exact_bench="output/benchmarks/original/Figures/synth_mult_arc/FL_full_comparison.RData"
+FL_original_exact_bench="output/benchmarks/original/Figures/synth_mult_arc/FL_full_comparisons.RData"
 
 even_bench_out="output/benchmarks/even/"
 even_V1V2_bench="output/benchmarks/even/Figures/synth_mult_arc/V1V2_full_comparisons.RData"
 even_V4V5_bench="output/benchmarks/even/Figures/synth_mult_arc/V4V5_full_comparisons.RData"
-FL_even_exact_bench="output/benchmarks/even/Figures/synth_mult_arc/FL_full_comparison.RData"
+FL_even_exact_bench="output/benchmarks/even/Figures/synth_mult_arc/FL_full_comparisons.RData"
 
 
 novel_bench_out="output/benchmarks/novel/"
