@@ -259,6 +259,14 @@ oligos_v4v5=os.path.join(args.paraDir, "input/primers/V4V5.oligos")
 oligos_v1v2=os.path.join(args.paraDir, "input/primers/V1V2.oligos")
 
 
+FL_syn_reads_filt="input/SILVAsubsample_SeedGenera_filt.fasta"
+FL_even_genus_reads_filt="input/FL_even_genus_filt.fasta"
+FL_novel_genus_reads_filt="input/FL_novel_genus_filt.fasta"
+FL_holdout1_reads_filt="input/FL_holdout1_filt.fasta"
+FL_holdout2_reads_filt="input/FL_holdout2_filt.fasta"
+FL_holdout3_reads_filt="input/FL_holdout3_filt.fasta"
+FL_holdoutOF_reads_filt="input/FL_holdoutOG_filt.fasta"
+
 #### Prep required files ####
 workflow.add_task(
     "gunzip input/Mock_data/SRR3225701.fasta.gz",
@@ -756,38 +764,45 @@ if(not args.skipBench):
     
     if(args.benchFL):
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp10.fasta; mv temp10.fasta [depends[0]]",
-            depends=FL_syn_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_syn_reads,
+            targets=FL_syn_reads_filt
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp11.fasta; mv temp11.fasta [depends[0]]",
-            depends=FL_even_genus_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_even_genus_reads,
+            targets=FL_even_genus_filt
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp12.fasta; mv temp12.fasta [depends[0]]",
-            depends=FL_novel_genus_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_novel_genus_reads,
+            targets=FL_novel_genus_reads_filt
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp13.fasta; mv temp13.fasta [depends[0]]",
-            depends=FL_holdout1_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_holdout1_reads,
+            targets=FL_holdout1_reads_filt
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp14.fasta; mv temp14.fasta [depends[0]]",
-            depends=FL_holdout2_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_holdout2_reads,
+            targets=FL_holdout2_reads_filt
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp15.fasta; mv temp15.fasta [depends[0]]",
-            depends=FL_holdout3_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_holdout3_reads,
+            targets=FL_holdout3_reads_filt
         )
         workflow.add_task(
-            "seqkit seq --min-len 1000 [depends[0]] > temp15.fasta; mv temp15.fasta [depends[0]]",
-            depends=FL_holdoutOG_reads
+            "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
+            depends=FL_holdoutOG_reads,
+            targets=FL_holdoutOF_reads_filt
         )
 
         # original
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_syn_reads, V1V2_para_taxa, V4V5_para_taxa],
+            depends=[FL_db, FL_syn_reads_filt, V1V2_para_taxa, V4V5_para_taxa],
             targets=FL_original_tax,
             args=[args.threads, FL_original_assignments],
             name="Assigning taxonomy to original FL reads"
@@ -795,7 +810,7 @@ if(not args.skipBench):
             #Even
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_even_genus_reads, V1V2_even_tax, V4V5_even_tax],
+            depends=[FL_db, FL_even_genus_reads_filt, V1V2_even_tax, V4V5_even_tax],
             targets=FL_even_tax,
             args=[args.threads, FL_even_assignments],
             name="Assigning taxonomy to FL even reads"
@@ -803,7 +818,7 @@ if(not args.skipBench):
             #Novel
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_novel_genus_reads, V1V2_novel_tax, V4V5_novel_tax],
+            depends=[FL_db, FL_novel_genus_reads_filt, V1V2_novel_tax, V4V5_novel_tax],
             targets=FL_novel_tax,
             args=[args.threads, FL_novel_assignments],
             name="Assigning taxonomy to FL novel reads"
@@ -811,7 +826,7 @@ if(not args.skipBench):
             #Holdout1
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdout1_reads, V1V2_holdout1_tax, V4V5_holdout1_tax],
+            depends=[FL_db, FL_holdout1_reads_filt, V1V2_holdout1_tax, V4V5_holdout1_tax],
             targets=FL_holdout1_tax,
             args=[args.threads, FL_holdout1_assignment],
             name="Assigning taxonomy to FL holdout 1 reads"
@@ -819,7 +834,7 @@ if(not args.skipBench):
             #Holdout2
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdout2_reads, V1V2_holdout2_tax, V4V5_holdout2_tax],
+            depends=[FL_db, FL_holdout2_reads_filt, V1V2_holdout2_tax, V4V5_holdout2_tax],
             targets=FL_holdout2_tax,
             args=[args.threads, FL_holdout2_assignment],
             name="Assigning taxonomy to FL holdout 2 reads"
@@ -827,7 +842,7 @@ if(not args.skipBench):
                     #Holdout3
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdout3_reads, V1V2_holdout3_tax, V4V5_holdout3_tax],
+            depends=[FL_db, FL_holdout3_reads_filt, V1V2_holdout3_tax, V4V5_holdout3_tax],
             targets=FL_holdout3_tax,
             args=[args.threads, FL_holdout3_assignment],
             name="Assigning taxonomy to FL holdout 3 reads"
@@ -835,7 +850,7 @@ if(not args.skipBench):
         #Holdout original
         workflow.add_task(
             "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
-            depends=[FL_db, FL_holdoutOG_reads, V1V2_holdoutOG_tax, V4V5_holdoutOG_tax],
+            depends=[FL_db, FL_holdoutOG_reads_filt, V1V2_holdoutOG_tax, V4V5_holdoutOG_tax],
             targets=FL_holdoutOG_tax,
             args=[args.threads, FL_holdoutOG_assignment],
             name="Assigning taxonomy to FL holdout original reads"
@@ -911,7 +926,7 @@ if(not args.skipBench):
         #Bench original FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads, silva_seed_tax, original_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads_filt, silva_seed_tax, original_V1V2_bench],
             args=[args.paraDir, FL_original_bench_out, args.dadaMinBoot],
             targets=[FL_original_bench],
             name="Benchmarking Full length original dataset"
@@ -920,7 +935,7 @@ if(not args.skipBench):
         #Bench even FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads, silva_seed_tax, even_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads_filt, silva_seed_tax, even_V1V2_bench],
             args=[args.paraDir, FL_even_bench_out, args.dadaMinBoot],
             targets=[FL_even_bench],
             name="Benchmarking Full length even dataset"
@@ -928,7 +943,7 @@ if(not args.skipBench):
         #Bench novel FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads, silva_seed_tax, novel_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads_filt, silva_seed_tax, novel_V1V2_bench],
             args=[args.paraDir, FL_novel_bench_out, args.dadaMinBoot],
             targets=[FL_novel_bench],
             name="Benchmarking Full length novel dataset"
@@ -936,7 +951,7 @@ if(not args.skipBench):
         #Bench holdout1 FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads, silva_seed_tax, holdout1_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads_filt, silva_seed_tax, holdout1_V1V2_bench],
             args=[args.paraDir, FL_holdout1_bench_out, args.dadaMinBoot],
             targets=[FL_holdout1_bench],
             name="Benchmarking Full length holdout 1 dataset"
@@ -944,7 +959,7 @@ if(not args.skipBench):
         #Bench holdout2 FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads, silva_seed_tax, holdout2_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads_filt, silva_seed_tax, holdout2_V1V2_bench],
             args=[args.paraDir, FL_holdout2_bench_out, args.dadaMinBoot],
             targets=[FL_holdout2_bench],
             name="Benchmarking Full length holdout 2 dataset"
@@ -952,7 +967,7 @@ if(not args.skipBench):
         #Bench holdout3 FL
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads, silva_seed_tax, holdout3_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads_filt, silva_seed_tax, holdout3_V1V2_bench],
             args=[args.paraDir, FL_holdout3_bench_out, args.dadaMinBoot],
             targets=[FL_holdout3_bench],
             name="Benchmarking Full length holdout 2 dataset"
@@ -960,7 +975,7 @@ if(not args.skipBench):
         
         workflow.add_task(
             "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
-            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdoutOG_tax, FL_holdoutOG_reads, silva_seed_tax, holdoutOG_V1V2_bench],
+            depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdoutOG_tax, FL_holdoutOG_reads_filt, silva_seed_tax, holdoutOG_V1V2_bench],
             args=[args.paraDir, FL_holdoutOG_bench_out, args.dadaMinBoot],
             targets=[FL_holdoutOG_bench],
             name="Benchmarking Full length holdout original dataset"
@@ -970,7 +985,7 @@ if(not args.skipBench):
         ## benchmark using naive bayes + exact species matching for species
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_original_tax, FL_syn_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_original_tax, FL_syn_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, original_bench_out],
             targets=[FL_original_exact_bench],
             name="Benchmarking FL synthetic assignments against naive + exact"
@@ -979,7 +994,7 @@ if(not args.skipBench):
         #run script to benchmark even genus data
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_even_tax, FL_even_genus_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_even_tax, FL_even_genus_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, even_bench_out],
             targets=[FL_even_exact_bench],
             name="Benchmarking FL even genus exact assignments"
@@ -989,7 +1004,7 @@ if(not args.skipBench):
         #run script to benchmark novel genus data
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_novel_tax, FL_novel_genus_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_novel_tax, FL_novel_genus_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, novel_bench_out],
             targets=[FL_novel_exact_bench],
             name="Benchmarking FL novel genus assignments using exact matches"
@@ -998,7 +1013,7 @@ if(not args.skipBench):
         #run script to benchmark holdout 1
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout1_tax, FL_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout1_tax, FL_holdout1_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout1_bench_out],
             targets=[FL_holdout1_exact_bench],
             name="Benchmarking FL holout 1 assignments using exact matches"
@@ -1006,7 +1021,7 @@ if(not args.skipBench):
 
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout2_tax, FL_holdout2_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout2_tax, FL_holdout2_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout2_bench_out],
             targets=[FL_holdout2_exact_bench],
             name="Benchmarking FL holout 2 assignments using exact matches"
@@ -1014,7 +1029,7 @@ if(not args.skipBench):
         
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout3_tax, FL_holdout3_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout3_tax, FL_holdout3_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout3_bench_out],
             targets=[FL_holdout3_exact_bench],
             name="Benchmarking FL holout 3 assignments using exact matches"
@@ -1022,7 +1037,7 @@ if(not args.skipBench):
         
         workflow.add_task(
             "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
-            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdoutOG_tax, FL_holdoutOG_reads, silva_taxonomy_file, silva_seed_tax],
+            depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdoutOG_tax, FL_holdoutOG_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdoutOG_bench_out],
             targets=[FL_holdoutOG_exact_bench],
             name="Benchmarking FL holout OG assignments using exact matches"
