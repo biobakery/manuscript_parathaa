@@ -265,7 +265,7 @@ FL_novel_genus_reads_filt="input/FL_novel_genus_filt.fasta"
 FL_holdout1_reads_filt="input/FL_holdout1_filt.fasta"
 FL_holdout2_reads_filt="input/FL_holdout2_filt.fasta"
 FL_holdout3_reads_filt="input/FL_holdout3_filt.fasta"
-FL_holdoutOF_reads_filt="input/FL_holdoutOG_filt.fasta"
+FL_holdoutOG_reads_filt="input/FL_holdoutOG_filt.fasta"
 
 #### Prep required files ####
 workflow.add_task(
