@@ -771,7 +771,7 @@ if(not args.skipBench):
         workflow.add_task(
             "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
             depends=FL_even_genus_reads,
-            targets=FL_even_genus_filt
+            targets=FL_even_genus_reads_filt
         )
         workflow.add_task(
             "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
