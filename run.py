@@ -992,7 +992,7 @@ if(not args.skipBench):
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_novel_tax, FL_novel_genus_reads, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, novel_bench_out],
             targets=[FL_novel_exact_bench],
-            name="Benchmarking novel genus assignments"
+            name="Benchmarking FL novel genus assignments using exact matches"
         )
 
         #run script to benchmark holdout 1
@@ -1001,7 +1001,7 @@ if(not args.skipBench):
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout1_tax, FL_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout1_bench_out],
             targets=[FL_holdout1_exact_bench],
-            name="Benchmarking holout 1 assignments"
+            name="Benchmarking FL holout 1 assignments using exact matches"
         )
 
         workflow.add_task(
@@ -1009,7 +1009,7 @@ if(not args.skipBench):
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout2_tax, FL_holdout2_reads, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout2_bench_out],
             targets=[FL_holdout2_exact_bench],
-            name="Benchmarking holout 1 assignments"
+            name="Benchmarking FL holout 2 assignments using exact matches"
         )
         
         workflow.add_task(
@@ -1017,7 +1017,7 @@ if(not args.skipBench):
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout3_tax, FL_holdout3_reads, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout3_bench_out],
             targets=[FL_holdout3_exact_bench],
-            name="Benchmarking holout 1 assignments"
+            name="Benchmarking FL holout 3 assignments using exact matches"
         )
         
         workflow.add_task(
@@ -1025,7 +1025,7 @@ if(not args.skipBench):
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdoutOG_tax, FL_holdoutOG_reads, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdoutOG_bench_out],
             targets=[FL_holdoutOG_exact_bench],
-            name="Benchmarking holout 1 assignments"
+            name="Benchmarking FL holout OG assignments using exact matches"
         )
             
 
