@@ -796,7 +796,7 @@ if(not args.skipBench):
         workflow.add_task(
             "seqkit seq --min-len 1000 [depends[0]] > [targets[0]]",
             depends=FL_holdoutOG_reads,
-            targets=FL_holdoutOF_reads_filt
+            targets=FL_holdoutOG_reads_filt
         )
 
         # original
