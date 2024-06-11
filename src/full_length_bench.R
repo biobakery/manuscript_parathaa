@@ -13,7 +13,7 @@ Options:
   -t input taxonomy
   -o output
   -s seed_data
-  -b minboot [default=0.8]
+  -b minboot [default=80]
   ]' -> doc
 
 
@@ -283,6 +283,7 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
   write.table(t4, file= file.path(outputDir, paste0("FL", "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
   
 }
+
 
 
 run.full.bench(parathaaFile = opts$paraAssign, 
