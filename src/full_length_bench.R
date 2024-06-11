@@ -98,6 +98,7 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
     str_remove(">")
   #create data frame with sequence and ID
   name.df <- data.frame("sequence" = unlist(getSequence(getNames, as.string=T)), taxaIDs = names1)
+  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H|V")) %>% pull(taxaIDs)
   
   taxa_dada2 <- assignTaxonomy(sequenceFile, 
                          DADAdb,
@@ -237,6 +238,9 @@ run.full.bench <- function(parathaaFile, sequenceFile, outputDir,
            Genus.parathaa = Genus.x.y,
            Genus.silva = Genus.y.y)
   
+  
+  # Remove seqs with N characters: 
+  compare.synth <- compare.synth %>% filter(!AccID %in% nChars2)
   # save the comparison data
   save(compare.synth, file= file.path(outputDir, paste0("FL", "_full_comparisons.RData")))
   

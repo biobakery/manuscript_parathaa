@@ -47,7 +47,7 @@ workflow.add_argument(
 workflow.add_argument(
     name="dadaMinBoot",
     desc="minimum_bootstrap for DADA2 full length assignment",
-    default=0.8
+    default=80
 )
 
 workflow.add_argument(
