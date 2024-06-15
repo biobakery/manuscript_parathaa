@@ -970,7 +970,7 @@ if(not args.skipBench):
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads_filt, silva_seed_tax, holdout3_V1V2_bench],
             args=[args.paraDir, FL_holdout3_bench_out, args.dadaMinBoot],
             targets=[FL_holdout3_bench],
-            name="Benchmarking Full length holdout 2 dataset"
+            name="Benchmarking Full length holdout 3 dataset"
         )
         
         workflow.add_task(
