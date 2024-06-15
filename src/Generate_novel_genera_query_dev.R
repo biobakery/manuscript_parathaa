@@ -34,8 +34,7 @@ SeedTax <- read.table(seedTaxFile , header=F, fill=TRUE,sep='\t')
 suppressWarnings({
   SeedTax <- SeedTax %>%
     separate(col=V1, into=c("primaryAccession", "ArbID"), sep="\\.") %>%
-    separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";") %>%
-    filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="")
+    separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";")
 })
 
 
