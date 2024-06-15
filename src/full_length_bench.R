@@ -292,5 +292,5 @@ run.full.bench(parathaaFile = opts$paraAssign,
                DADAdb = opts$dada_db_FL, 
                inFileTaxdata = opts$t, 
                inFileSeedDB = opts$s,
-               minboot = opts$b
+               minboot = as.numeric(opts$b)
 )
