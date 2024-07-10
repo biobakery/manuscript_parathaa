@@ -64,6 +64,14 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
     dplyr::select(query.name, Kingdom, Phylum, Class, Order, Family, Genus, Species) %>%
     group_by(query.name) 
   
+  ## we treat unclassified labels as unassigned in this case
+  hierarchy <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+  tax_parathaa <- tax_parathaa %>% mutate_at(vars(hierarchy), ~ str_replace(., "\\b\\w+ Unclassified", ""))
+  ##then if we have blank string we replace with NA
+  tax_parathaa <- tax_parathaa %>% mutate_at(vars(hierarchy), ~ na_if(., ""))
+  ## replace any that are just ;
+  tax_parathaa <- tax_parathaa %>% mutate_at(vars(hierarchy), ~ str_replace(., "^;+$", "")) 
+  
   #convert to a matrix so that it can be input into a phyloseq tax_table
   taxmat <- tax_parathaa %>% as.matrix
   rownames(taxmat) <- tax_parathaa$query.name
