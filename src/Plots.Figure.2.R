@@ -39,11 +39,11 @@ library(stringr)
 library(tidyr)
 suppressPackageStartupMessages(library(seqinr))
 source_url("https://raw.githubusercontent.com/lrjoshi/FastaTabular/master/fasta_and_tabular.R")
-#setwd("C:/Users/mshort/Documents/proj/manuscript_parathaa/")
+
 
 ### DADA2 db ###
-#DADAdb <- "input/20230111.silva.seed_v138_1.ng.dada.fasta"
-#DADAdb.sp <- "input/20231130_silva.seed_v138_1.ng.dada.sp.fasta"
+#DADAdb <- "~/Repos/Hills_Project/Parathaa_Project/Benchmarking/Output_Jun_6/input/20231215.silva.seed_v138_1.ng.dada.fasta"
+#DADAdb.sp <- "~/Repos/Hills_Project/Parathaa_Project/Benchmarking/Output_Jun_6/input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
 DADAdb <- opts$dada_db
 DADAdb.sp <- opts$dada_db_sp
 
@@ -438,7 +438,7 @@ for(level in c("Genus","Species")){
   
   #ps1.com.lev <- ps1.com
 
-
+  taxa_names(ps1.com.rel.lev.agg) <- gsub("phBC6A52;", "phBC6A52;\n", taxa_names(ps1.com.rel.lev.agg))
   plot.composition.relAbun <- plot_composition(ps1.com.rel.lev.agg,
                                                #sample.sort="Taxonomy_type",
                                                ##sample.sort = "sampleID", 
@@ -529,7 +529,11 @@ included <- c("Actinomyces odontolyticus",
               "Streptococcus agalactiae"                                 ,
               "Streptococcus agalactiae;Streptococcus suis",  
               "Streptococcus mutans"                                     ,
-              "Streptococcus pneumoniae"    )
+              "Streptococcus pneumoniae",
+              "Enterococcus canis;Enterococcus casseliflavus;Enterococcus faecalis;Enterococcus gallinarum;Enterococcus Unclassified;Melissococcus plutonius",
+              "Bacillus anthracis;Bacillus cereus;Bacillus phage phBC6A52;Bacillus thuringiensis;Bacillus Unclassified",
+              "Bacillus cereus;Bacillus thuringiensis;Bacillus Unclassified;Bacillus wiedmannii",
+              "Streptococcus agalactiae;Streptococcus phage 10750.4")
 others <- c("Ambiguous", "Unknown", "Other")
 included.df <- data.frame(rep("Not included", length(colnames(forHeat))))
 colnames(included.df) <- "Mock Community"
@@ -557,12 +561,22 @@ col_fun <- c("grey", "grey", "grey",   rev(magma(98)))
 
 ### Anything < 0.1% set to 0
 forHeat <- forHeat*(forHeat>0.001)
+###manually fix heatmap column names...
+
+colnames(forHeat)[1] <- "Bacillus anthracis;B. cereus;B. phage phBC6A52;B. thuringiensis;B. Unclassified"
+colnames(forHeat)[2] <- "Bacillus anthracis;B. cereus;B. thuringiensis" 
+colnames(forHeat)[4] <- "Bacillus cereus;B. thuringiensis;B. Unclassified;B. wiedmannii"
+colnames(forHeat)[7] <- "Enterococcus canis;E. casseliflavus;E. faecalis;E. gallinarum;E. Unclassified;Melissococcus plutonius"
+colnames(forHeat)[9] <- "Lactobacillus gasseri;L. johnsonii"
+colnames(forHeat)[10] <- "Listeria innocua;L. monocytogenes"
+colnames(forHeat)[15] <- "Staphylococcus aureus;S. epidermidis"
+colnames(forHeat)[18] <- "Streptococcus agalactiae;S. phage 10750.4"
 
 png(paste0(opts$o, "/Figures/", "Fig_2A_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
 ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
-               column_names_max_height = unit(10, "cm"),
+               column_names_max_height = unit(15, "cm"),
                cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
-               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 10), 
+               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 7), 
                column_split = included.df[,"Mock Community"], column_title=NULL, top_annotation = ha,
                row_split = region.df[,"16S Region"], row_title=NULL, right_annotation = ra,
                row_names_gp = grid::gpar(fontsize = 10))  %v% NULL

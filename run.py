@@ -59,6 +59,8 @@ workflow.add_argument(
 
 
 
+
+
 # Parsing the workflow arguments
 args = workflow.parse_args()
 
@@ -85,6 +87,7 @@ V4V5_syn_reads="input/SILVAsubsample_SeedGenera_V4V5.pcr.fasta"
 V1V2_syn_reads="input/SILVAsubsample_SeedGenera_V1V2.pcr.fasta"
 V1V2_db="input/SILVA_V1V2"
 V4V5_db="input/SILVA_V4V5"
+V1V3_db="input/SILVA_V1V3"
 FL_db="input/SILVA_FL"
 V1V2_assignments="output/V1V2_syn/"
 V4V5_assignments="output/V4V5_syn/"
@@ -101,13 +104,6 @@ V1V2_mock_fasta="input/Mock_data/SRR3225701.fasta"
 V1V2_mock_counts="input/Mock_data/SRR3225701.count_table"
 Fig2="output/Figures/Fig_2A_MockHeatmap.png"
 
-
-ASD_reads="input/ASD_data/amplicons_fromKelsey.fasta"
-ASD_out="output/V4V5_ASD"
-ASD_assignments="output/V4V5_ASD/taxonomic_assignments.tsv"
-ASD_counts="input/ASD_data/all_samples_taxonomy_closed_reference.tsv"
-ASD_countSeq="input/ASD_data/all_samples_taxonomy_closed_reference_withseqs.tsv"
-ASD_figure="output/BrayCurtisPCoA.png"
 
 even_genus_IDs="input/even_queryIDs.txt"
 novel_genus_IDs="input/novel_query_ids.txt"
@@ -266,6 +262,27 @@ FL_holdout1_reads_filt="input/FL_holdout1_filt.fasta"
 FL_holdout2_reads_filt="input/FL_holdout2_filt.fasta"
 FL_holdout3_reads_filt="input/FL_holdout3_filt.fasta"
 FL_holdoutOG_reads_filt="input/FL_holdoutOG_filt.fasta"
+
+
+## target files for Oral data
+Oral_V4V5_reads="input/Oral_V4V5/Rep_seqs.fasta"
+Oral_V4V5_abundance_tab="input/Oral_V4V5/abundance_table.tsv"
+Oral_V4V5_out="output/Oral_V4V5/"
+Oral_V4V5_assignments="output/Oral_V4V5/taxonomic_assignments.tsv"
+Oral_rds_plot="output/Oral_V4V5/average_plots.RDS"
+
+## target files for Mine V4V5 data
+Mine_V4V5_reads="input/Mine_V4V5/dna-sequences.fasta"
+Mine_V4V5_abundance_tab="input/Mine_V4V5/feature-table.tsv"
+Mine_V4V5_out="output/Mine_V4V5"
+Mine_V4V5_assignments="output/Mine_V4V5/taxonomic_assignments.tsv"
+Mine_V4V5_rds_plot="output/Mine_V4V5/average_plots.RDS"
+
+## target files for Mine V1V3 data
+Mine_V1V3_reads="input/Mine_V1V3/dna-sequences.fasta"
+Mine_V1V3_abundance_tab="input/Mine_V1V3/feature-table.tsv"
+Mine_V1V3_out="output/Mine_V1V3"
+Mine_V1V3_assignments="output/Mine_V1V3/taxonomic_assignments.tsv"
 
 #### Prep required files ####
 workflow.add_task(
@@ -435,6 +452,7 @@ workflow.add_task(
    name="generating full length holdout3 reads"
 )
 
+#Holdout OG
 workflow.add_task(
    "faSomeRecords [depends[0]] [depends[1]] [targets[0]]",
    depends=[silva_full_db_DNA, holdOG_genus_IDs],
@@ -1047,9 +1065,8 @@ if(not args.skipBench):
 ########### End of benchmarking ###############
 
 
-#only run if benchmark only flag is false
 if(not args.benchonly):
-# Run parathaa on mock V4V5
+    # Run parathaa on mock V4V5
     workflow.add_task(
         "mkdir output/V4V5_Mock; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [args[0]] --output [args[1]] --threads [args[2]]",
         depends=[V4V5_db],
@@ -1069,7 +1086,6 @@ if(not args.benchonly):
     )
 
     # Run script to generate mock figures
-
     workflow.add_task(
         "Rscript src/Plots.Figure.2.R --dada_db [depends[0]] --dada_db_sp [depends[1]] -o [args[0]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --fastaV4V5 [args[1]] --fastaV1V2 [args[2]] --fastaV1V2uni [args[3]] --V1V2Counts [args[4]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_mock_assignment, V1V2_mock_assignment],
@@ -1077,30 +1093,72 @@ if(not args.benchonly):
         targets=Fig2,
         name="Generate mock data figure (figure2)"
     )
-
-    # Run parathaa on ASD data
-    ## THIS PART needs to be replaced with new datasets.
-
+    
+    # Run parathaa on Oral V4V5 data
     workflow.add_task(
-        "mkdir output/V4V5_ASD; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [args[0]] --output [args[1]] --threads [args[2]]",
+        "mkdir output/Oral_V4V5; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [args[0]] --output [args[1]] --threads [args[2]]",
         depends=[V4V5_db],
-        args=[ASD_reads, ASD_out, args.threads],
-        targets=ASD_assignments,
-        name="Generating parathaa assignments for ASD dataset"
+        args=[Oral_V4V5_reads, Oral_V4V5_out, args.threads],
+        targets=Oral_V4V5_assignments,
+        name="Assigning parathaa taxonomy to Oral V4V5 reads"
     )
-
-
-    # Run script to generate ASD figures
-
+    
+    # Run parathaa on Mine V4V5 data
     workflow.add_task(
-        "Rscript src/Plots.Figure.3.R --counts [args[0]] --countSeq [args[1]] --fasta [args[2]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] -o [args[3]]",
-        depends=[dada2_seed_db, dada2_seed_db_sp, ASD_assignments],
-        args=[ASD_counts, ASD_countSeq, ASD_reads, args.output],
-        targets=ASD_figure,
-        name="Generating ASD Figures"
+        "mkdir output/Mine_V4V5; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [args[0]] --output [args[1]] --threads [args[2]]",
+        depends=[V4V5_db],
+        args=[Mine_V4V5_reads, Mine_V4V5_out, args.threads],
+        targets=Mine_V4V5_assignments,
+        name="Assigning parathaa taxonomy to Mine V4V5 reads"
     )
+    
+    # Run parathaa on Mine V1V3 data
+    workflow.add_task(
+        "mkdir output/Mine_V1V3; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [args[0]] --output [args[1]] --threads [args[2]]",
+        depends=[V1V3_db],
+        args=[Mine_V1V3_reads, Mine_V1V3_out, args.threads],
+        targets=Mine_V1V3_assignments,
+        name="Assigning parathaa taxonomy to Mine V1V3 reads"
+    )
+    
+    ## Generate RDS files of figures for each data set
+    
+    # Oral V4V5
+    workflow.add_task(
+        "Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        depends=[Oral_V4V5_reads, Oral_V4V5_abundance_tab, Oral_V4V5_assignments, dada_db, dada_db_sp],
+        args=[Oral_V4V5_out],
+        targets=Oral_rds_plot,
+        name="Generating RDS files for plotting Oral V4V5 data"
+    )
+    
+    
+    #Mine V4V5
+    workflow.add_task(
+        "Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        depends=[Mine_V4V5_reads, Mine_V4V5_abundance_tab, Mine_V4V5_assignments, dada_db, dada_db_sp],
+        args=[Mine_V4V5_out],
+        targets=Mine_V4V5_rds_plot,
+        name="Generating RDS files for plotting Mine V4V5 data"
+    )
+    
+    #Mine V1V3
+    workflow.add_task(
+        "Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        depends=[Mine_V1V3_reads, Mine_V1V3_abundance_tab, Mine_V1V3_assignments, dada_db, dada_db_sp],
+        args=[Mine_V1V3_out],
+        targets=Mine_V1V3_rds_plot,
+        name="Generating RDS files for plotting Mine V1V3 data"
+    )
+    
+    ## Generate manuscript figure from RDS files
+    workflow.add_task(
+        "Rscript src/real_data_plots.R --OralV4V5 [depends[0]] --MineV4V5 [depends[1]] --MineV1V3 [depends[2]] --output [args[0]]",
+        depends=[Oral_V4V5_out, Mine_V4V5_out, Mine_V1V3_out, Oral_rds_plot, Mine_V1V3_rds_plot, Mine_V4V5_rds_plot],
+        args=args.output,
+        name="Generating final real data figures"
 
-
+    )
 
 #done
 workflow.go()
