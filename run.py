@@ -1154,7 +1154,7 @@ if(not args.benchonly):
     
     ## Generate manuscript figure from RDS files
     workflow.add_task(
-        "Rscript src/real_data_plots.R --OralV4V5 [arg[0]] --MineV4V5 [args[1]] --MineV1V3 [args[2]] --output [args[3]]",
+        "Rscript src/real_data_plots.R --OralV4V5 [args[0]] --MineV4V5 [args[1]] --MineV1V3 [args[2]] --output [args[3]]",
         depends=[Oral_rds_plot, Mine_V1V3_rds_plot, Mine_V4V5_rds_plot],
         args=[Oral_V4V5_out, Mine_V4V5_out, Mine_V1V3_out, args.output],
         name="Generating final real data figures"
