@@ -572,7 +572,7 @@ colnames(forHeat)[10] <- "Listeria innocua;L. monocytogenes"
 colnames(forHeat)[15] <- "Staphylococcus aureus;S. epidermidis"
 colnames(forHeat)[18] <- "Streptococcus agalactiae;S. phage 10750.4"
 
-png(paste0(opts$o, "/Figures/", "Fig_2A_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
+png(paste0(opts$o, "/Fig_2A_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
 ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
                column_names_max_height = unit(15, "cm"),
                cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
