@@ -1123,10 +1123,10 @@ if(not args.benchonly):
     )
     
     ## Generate RDS files of figures for each data set
-    
+
     # Oral V4V5
     workflow.add_task(
-        "Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        "mkdir [args[0]]; Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
         depends=[Oral_V4V5_reads, Oral_V4V5_abundance_tab, Oral_V4V5_assignments, dada2_seed_db, dada2_seed_db_sp],
         args=[Oral_V4V5_out],
         targets=Oral_rds_plot,
@@ -1136,7 +1136,7 @@ if(not args.benchonly):
     
     #Mine V4V5
     workflow.add_task(
-        "Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        "mkdir [args[0]]; Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
         depends=[Mine_V4V5_reads, Mine_V4V5_abundance_tab, Mine_V4V5_assignments, dada2_seed_db, dada2_seed_db_sp],
         args=[Mine_V4V5_out],
         targets=Mine_V4V5_rds_plot,
@@ -1145,7 +1145,7 @@ if(not args.benchonly):
     
     #Mine V1V3
     workflow.add_task(
-        "Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        "mkdir [args[0]]; Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
         depends=[Mine_V1V3_reads, Mine_V1V3_abundance_tab, Mine_V1V3_assignments, dada2_seed_db, dada2_seed_db_sp],
         args=[Mine_V1V3_out],
         targets=Mine_V1V3_rds_plot,
