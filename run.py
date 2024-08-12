@@ -1145,7 +1145,7 @@ if(not args.benchonly):
     
     #Mine V1V3
     workflow.add_task(
-        "mkdir [args[0]]; Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]]",
+        "mkdir [args[0]]; Rscript src/Generate_Comp_plots.R --query [depends[0]] --abund_tab [depends[1]] --parathaa_assign [depends[2]] --dada_db [depends[3]] --dada_db_sp [depends[4]] --output [args[0]] --skip Species",
         depends=[Mine_V1V3_reads, Mine_V1V3_abundance_tab, Mine_V1V3_assignments, dada2_seed_db, dada2_seed_db_sp],
         args=[Mine_V1V3_out],
         targets=Mine_V1V3_rds_plot,
