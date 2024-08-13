@@ -453,7 +453,10 @@ for(level in c("Genus","Species")){
   if(level=="Species" & includeSpingo==T)
     xlabs <- c("DADA2 V1V2", "Parathaa V1V2", "SPINGO V1V2", "DADA2 V4V5", "Parathaa V4V5", "SPINGO V4V5") # for mock
   plot.composition.relAbun <- plot.composition.relAbun + theme(legend.position = "bottom") 
-  plot.composition.relAbun <- plot.composition.relAbun +  theme_bw()  +  scale_fill_manual(level, values = stepped2()) #scale_fill_brewer(palette="Paired")  
+  plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Other")
+  plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
+  cols <- c("white", "grey", stepped2(n=length(levels(plot.composition.relAbun$data$Tax))-2))
+  plot.composition.relAbun <- plot.composition.relAbun +  theme_bw()  +  scale_fill_manual(level, values = cols)#scale_fill_brewer(palette="Paired")  
   #plot.composition.relAbun <- plot.composition.relAbun + theme(axis.text.x = element_text(angle = 90)) 
   plot.composition.relAbun <- plot.composition.relAbun + ylab("Relative Abundance") +
     guides(fill= 
