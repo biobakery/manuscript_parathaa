@@ -88,6 +88,8 @@ plot_genus_figures <- function(genus_bench_list){
   full_df_melt$Dataset <- gsub("holdoutOG", "Orig. Holdout", full_df_melt$Dataset)
   full_df_melt$Dataset <- gsub("holdout[1-3]", "Holdout", full_df_melt$Dataset)
   full_df_melt$Dataset <- gsub("original", "Original", full_df_melt$Dataset)
+  full_df_melt$Dataset <- gsub("novel", "Genera outside of DB", full_df_melt$Dataset)
+  full_df_melt$Dataset <- gsub("even", "Single represenative genera", full_df_melt$Dataset)
   
   #filter out one of the Parathaa measurements as its repeat information
   full_df_melt <- full_df_melt %>% filter(Region != "Full_naive" | variable != "Parathaa")
@@ -107,16 +109,35 @@ plot_genus_figures <- function(genus_bench_list){
                                 levels = c("F1 Score", "Precision", "Recall", "Accuracy", "Uniquely Correct", 
                                            "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect"))
   
+  full_df_melt$Dataset <- factor(full_df_melt$Dataset, levels=c("Original", "Orig. Holdout", "Genera outside of DB",
+                                                                "Single represenative genera", "Holdout"))
+  
+  
   full_plot <- ggplot(full_df_melt, aes(x=Dataset, y=as.numeric(value), group=variable, color=variable, shape=variable)) + 
-    geom_jitter(position=position_jitterdodge(dodge.width = 1, jitter.width = .1), size=3, alpha=0.7) +
+    geom_jitter(position=position_jitterdodge(dodge.width = 1, jitter.width = .1), size=3, alpha=1) +
     #geom_point(stat="summary", fun="mean", shape="_", position = position_dodge(width = 1), size=10) +
     facet_grid(rows=vars(Metric), cols=vars(Region), scales="free_y") +
     theme_bw() + 
-    scale_color_manual(name="Software", values=c(Parathaa="#A41034", DADA2="#143d59", "DADA2 minboot=50"="#1f5e89", "DADA2 minboot=80"="#2a7fb9"))+ 
+    scale_color_manual(name="Software", values=c(Parathaa="#A41034", DADA2="#143d59", "DADA2 minboot=50"="#3F054F", "DADA2 minboot=80"="#2a7fb9"))+ 
     ylab("") +
     ggtitle("Genus") + theme(strip.text.y=element_text(angle=0), axis.text.x = element_text(angle=65, vjust = 0.5)) +
     scale_y_continuous(breaks=scales::pretty_breaks(n=3)) +
-    scale_shape_manual(name="Software", values=c(DADA2=17, "DADA2 minboot=50"=17, "DADA2 minboot=80"=17, "Parathaa"=16))
+    scale_shape_manual(name="Software", values=c(DADA2=17, "DADA2 minboot=50"=17, "DADA2 minboot=80"=17, "Parathaa"=16)) +
+    geom_rect(xmin=0,
+              xmax=1.5,
+              ymin=0, ymax=1, color=NA, fill="grey", alpha=0.01) +
+    geom_rect(xmin=1.5,
+              xmax=2.5,
+              ymin=0, ymax=1, color=NA, fill="black", alpha=0.01) +
+    geom_rect(xmin=2.5,
+              xmax=3.5,
+              ymin=0, ymax=1, color=NA, fill="grey", alpha=0.01) +
+    geom_rect(xmin=3.5,
+              xmax=4.5,
+              ymin=0, ymax=1, color=NA, fill="black", alpha=0.01) +
+    geom_rect(xmin=4.5,
+              xmax=6,
+              ymin=0, ymax=1, color=NA, fill="grey", alpha=0.01)
       
 
   
@@ -124,16 +145,20 @@ plot_genus_figures <- function(genus_bench_list){
                                                                                     "Uniquely Correct", "One-to-many Correct",
                                                                                     "Incorrect"))
   
+  
+
+  
   smaller_plot <- ggplot(filt_data, aes(x=Dataset, y=as.numeric(value), group=variable, color=variable, shape=variable)) + 
     geom_jitter(position=position_jitterdodge(dodge.width = 1, jitter.width = .1), size=3, alpha=0.7) +
     #geom_point(stat="summary", fun="mean", shape="_", position = position_dodge(width = 1), size=10) +
     facet_grid(rows=vars(Metric), cols=vars(Region), scales="free_y") +
     theme_bw() + 
-    scale_color_manual(name="Software", values=c(Parathaa="#A41034", DADA2="#143d59", "DADA2 minboot=50"="#1f5e89", "DADA2 minboot=80"="#2a7fb9"))+ 
+    scale_color_manual(name="Software", values=c(Parathaa="#A41034", DADA2="#143d59", "DADA2 minboot=50"="#3F054F", "DADA2 minboot=80"="#2a7fb9"))+ 
     ylab("") +
     ggtitle("Genus") + theme(strip.text.y=element_text(angle=0), axis.text.x = element_text(angle=65, vjust = 0.5)) +
     scale_y_continuous(breaks=scales::pretty_breaks(n=3)) +
-    scale_shape_manual(name="Software", values=c(DADA2=17, "DADA2 minboot=50"=17, "DADA2 minboot=80"=17, "Parathaa"=16))
+    scale_shape_manual(name="Software", values=c(DADA2=17, "DADA2 minboot=50"=17, "DADA2 minboot=80"=17, "Parathaa"=16)) +
+    geom_blank(data=dumby_data)
   
   return(list(full_plot, smaller_plot))
 
@@ -180,12 +205,14 @@ plot_benchs_species <- function(mult_bench, no_mult_bench, sens_bench){
                                                               "Recall", "Uniquely Correct",
                                                               "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect"))
   
+  
+  
   cols <- c("Parathaa Specific (default)"="#A41034",
-            "Parathaa Sensitive"="#BF4765",
+            "Parathaa Sensitive"="#FFA500",
             "DADA2"="#143d59",
-            "DADA2 Multi"="#63C5DA",
-            "DADA2 Naive Bayes"="#82EEFD",
-            "DADA2 Exact Match"="#59788E")
+            "DADA2 Multi"="#3F054F",
+            "DADA2 Naive Bayes"="#ca5cdd",
+            "DADA2 Exact Match"="#82EEFD")
   
   shapes <- c("Parathaa Specific (default)"=16,
               "Parathaa Sensitive"=16,
@@ -197,10 +224,19 @@ plot_benchs_species <- function(mult_bench, no_mult_bench, sens_bench){
   full_df_melt$Dataset <- gsub("holdout[1-3]", "Holdout", full_df_melt$Dataset)
   full_df_melt$Dataset <- gsub("original", "Original", full_df_melt$Dataset)
   full_df_melt$Dataset <- gsub("holdoutOG", "Orig. Holdout", full_df_melt$Dataset)
+  full_df_melt$Dataset <- gsub("novel", "Genera outside of DB", full_df_melt$Dataset)
+  full_df_melt$Dataset <- gsub("even", "Single represenative genera", full_df_melt$Dataset)
   
-  full_df_melt$variable <- factor(full_df_melt$variable, levels=c("Parathaa Specific (default)", "Parathaa Sensitive",
-                                                                  "DADA2", "DADA2 Multi", "DADA2 Naive Bayes", 
-                                                                  "DADA2 Exact Match"))
+  full_df_melt$variable <- factor(full_df_melt$variable, levels=c("Parathaa Specific (default)", 
+                                                                  "DADA2 Multi",
+                                                                  "DADA2 Exact Match",
+                                                                  "Parathaa Sensitive",
+                                                                  "DADA2",
+                                                                  "DADA2 Naive Bayes"
+                                                                  ))
+  
+  full_df_melt$Dataset <- factor(full_df_melt$Dataset, levels=c("Original", "Orig. Holdout", "Holdout",
+                                                                "Single represenative genera",  "Genera outside of DB"))
   
   full_plot <- ggplot(full_df_melt, aes(x=Dataset, y=as.numeric(value), group=variable, color=variable, shape=variable)) + 
     geom_jitter(position=position_jitterdodge(dodge.width = 1, jitter.width = .1), size=3, alpha=0.7) +
@@ -211,11 +247,39 @@ plot_benchs_species <- function(mult_bench, no_mult_bench, sens_bench){
     ylab("") +
     ggtitle("Species") + theme(strip.text.y=element_text(angle=0), axis.text.x = element_text(angle=65, vjust = 0.5)) +
     scale_y_continuous(breaks=scales::pretty_breaks(n=3)) +
-    scale_shape_manual(name="Software", values=shapes)
+    scale_shape_manual(name="Software", values=shapes) +
+    geom_rect(xmin=0,
+              xmax=1.5,
+              ymin=0, ymax=1, color=NA, fill="grey", alpha=0.01) +
+    geom_rect(xmin=1.5,
+              xmax=2.5,
+              ymin=0, ymax=1, color=NA, fill="black", alpha=0.01) +
+    geom_rect(xmin=2.5,
+              xmax=3.5,
+              ymin=0, ymax=1, color=NA, fill="grey", alpha=0.01) +
+    geom_rect(xmin=3.5,
+              xmax=4.5,
+              ymin=0, ymax=1, color=NA, fill="black", alpha=0.01) +
+    geom_rect(xmin=4.5,
+              xmax=6,
+              ymin=0, ymax=1, color=NA, fill="grey", alpha=0.01)
   
   filt_data <- full_df_melt %>% filter(Dataset=="Holdout") %>% filter(Metric %in% c("F1 Score", "Precision", "Recall", 
                                                                                     "Uniquely Correct", "One-to-many Correct",
                                                                                     "Incorrect"))
+  
+  top_panel <- c("F1 Score", "Precision", "Recall")
+  bottom_panel <- c("Uniquely Correct", "One-to-many Correct",
+                    "Incorrect")
+  dumby_data <- filt_data
+  dumby_data <- dumby_data %>% mutate(value = case_when(
+    Metric %in% top_panel & variable == "Parathaa" ~ 1,
+    Metric %in% top_panel & variable == "DADA2" ~ 0.5,
+    Metric %in% top_panel & variable == "DADA2 minboot=50" ~ 0.5,
+    Metric %in% bottom_panel & variable == "Parathaa" ~ 0.5,
+    Metric %in% bottom_panel & variable == "DADA2" ~ 0.5,
+    Metric %in% bottom_panel & variable == "DADA2 minboot=50" ~ 0.5,
+  ))
   
   small_plot <- ggplot(filt_data, aes(x=Dataset, y=as.numeric(value), group=variable, color=variable, shape=variable)) + 
     geom_jitter(position=position_jitterdodge(dodge.width = 1, jitter.width = .2), size=3, alpha=0.6) +
@@ -226,7 +290,8 @@ plot_benchs_species <- function(mult_bench, no_mult_bench, sens_bench){
     ylab("") +
     ggtitle("Species") + theme(strip.text.y=element_text(angle=0), axis.text.x = element_text(angle=65, vjust = 0.5)) +
     scale_y_continuous(breaks=scales::pretty_breaks(n=3)) +
-    scale_shape_manual(values=shapes, name="Software")
+    scale_shape_manual(values=shapes, name="Software")+
+    geom_blank(data=dumby_data)
   
   
   return(list(full_plot, small_plot))
