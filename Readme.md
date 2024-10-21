@@ -2,12 +2,10 @@
 
 # Parathaa Manuscript Analysis
 
+
 ## About
 
-## Requirements
-> This page gives details concerning guiding principles and formatting required for private analysis workflows and reproducing papers.
+This repository contains all the code that was run to compare Parathaa's performance against DADA2's for Parathaa's accompanying manuscript.
 
-## Set-up
+The workflow is setup in Anadama2 and uses various R and bash script files to generate the figures within the manuscript. Note that some manuscript figures were saved individually or as RDS files and then used within illustator to combine into single panels.
 
-
-## Outputs
