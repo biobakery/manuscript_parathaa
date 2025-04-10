@@ -28,12 +28,12 @@ parathaaDir <- (opts$p)
 library(phyloseq) 
 library(dplyr) 
 library(stringr)
-library(ggtree)
+suppressPackageStartupMessages(library(ggtree))
 library(treeio)
 library(dada2)
 library(ggplot2)
 library(castor)
-library(phytools)
+suppressPackageStartupMessages(library(phytools))
 #library(flextable)
 suppressPackageStartupMessages(library(seqinr))
 source(file.path(parathaaDir, "parathaa/utility/SILVA.species.editor.dev.R"))
@@ -50,7 +50,7 @@ source("src/performance.table.R")
 
 ## Define Function ##
 run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir, dadaAllowMult = FALSE,
-                               DADAdb, DADAdb.sp, inFileTaxdata, inFileSeedDB){
+                               DADAdb, DADAdb.sp, inFileTaxdata, inFileSeedDB, SILVA=TRUE, historic=FALSE){
   
   dir.create(outputDir, recursive = T, showWarnings = F)
   
@@ -131,7 +131,8 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   nChars <- grep("N|M|R|K|Y|S|W|D|B|H", rownames(taxa.test))
   print(paste("Removing", length(nChars), "sequences with N bases"))
   withNbases <- taxa.test[nChars,]
-  taxa <- taxa[-nChars,]
+  if(length(nChars!=0))
+    taxa <- taxa[-nChars,]
   
   ## Perform species assignment with DADA2 (takes a few minutes)
   taxa.sp <- addSpecies(taxa, DADAdb.sp, allowMultiple = dadaAllowMult)
@@ -142,7 +143,9 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   tax_dada$sequence <- str_split(rownames(tax_dada), "\\.", simplify=TRUE)[,1]
   getnamSubset <-name.df %>% filter(sequence %in% tax_dada$sequence)
   tax_dada2 <- cbind(tax_dada, "taxaIDs" =getnamSubset$taxaIDs)
-  tax_dada2 <- full_join(tax_dada2, withNbases)
+  if(length(nChars!=0))
+    tax_dada2 <- full_join(tax_dada2, withNbases)
+  
   rownames(tax_dada2) <- tax_dada2[,"taxaIDs"]
   
   #select so we only keep taxonomy columns
@@ -194,47 +197,57 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   
   #Get reference taxdata from SILVA:
   taxdata <- read.table(inFileTaxdata , header=T, fill=TRUE,sep='\t', quote="")
-  taxdata <- taxdata %>%
-    unite("AccID", c("primaryAccession", "start", "stop"), sep=".", remove=F)
-  taxdata <- taxdata %>%
-    mutate(taxonomy=paste0(path, organism_name))
   
-  #remove Eukaryota Kingdom as they have taxonomy that we are not handling here.
-  taxdata <- taxdata %>% filter(!grepl("^Eukaryota;", path))
-  
-  taxdata <- taxdata %>%
-    select(AccID, primaryAccession, start, stop, taxonomy) %>%
-    separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";", fill="right")
-  
-  ## Fix up remaining silva taxonomy by removing sub species and 'uncultured' species
-  taxdata <- SILVA.species.editor(taxdata)
+  if(SILVA){
+    taxdata <- taxdata %>%
+      unite("AccID", c("primaryAccession", "start", "stop"), sep=".", remove=F)
+    taxdata <- taxdata %>%
+      mutate(taxonomy=paste0(path, organism_name))
+    
+    #remove Eukaryota Kingdom as they have taxonomy that we are not handling here.
+    taxdata <- taxdata %>% filter(!grepl("^Eukaryota;", path))
+    
+    taxdata <- taxdata %>%
+      select(AccID, primaryAccession, start, stop, taxonomy) %>%
+      separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";", fill="right")
+    
+    ## Fix up remaining silva taxonomy by removing sub species and 'uncultured' species
+    taxdata <- SILVA.species.editor(taxdata)
+  }else{
+    taxdata <- taxdata %>%
+      tidyr::separate(path, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep="\\|", fill="right")
+  }
+
   
   
   ## Read in seed db to identify what taxonomy the classifiers are actually aware of
-  SeedTax <- read.table(inFileSeedDB , header=F, fill=TRUE,sep='\t')
-  
-  SeedTax <- SeedTax %>%
-    separate(col=V1, into=c("primaryAccession", "ArbID"), sep="\\.") %>%
-    separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";", extra="drop") %>%
-    filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="") 
-  
-  ### Look over this code to figure out why we are doing it this way ###
-  taxdata_seedless <- taxdata %>% 
-    filter(!primaryAccession %in% SeedTax$primaryAccession) %>%
-    ## Subset to Genera in Seed for now
-    ## Come back to why we need to do this?
-    filter(Genus %in% unique(SeedTax$Genus))
-  
+  if(SILVA){
+    SeedTax <- read.table(inFileSeedDB , header=F, fill=TRUE,sep='\t')
+    SeedTax <- SeedTax %>%
+      separate(col=V1, into=c("primaryAccession", "ArbID"), sep="\\.") %>%
+      separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";", extra="drop") %>%
+      filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="") 
+  }else{
+    SeedTax <- read.table(inFileSeedDB , header=T, fill=TRUE,sep='\t')
+    SeedTax <- SeedTax %>% tidyr::separate(col=path, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Spec"), sep="\\|")
+  }
 
   
   ## Make synthetic comparison dataset
-  
   # Grab the parathaa taxonomy table
   synth.parathaa<- as.data.frame(tax_table(ps1_parathaa))
-  synth.parathaa$AccID <- rownames(synth.parathaa)
+
   
   #Join the Parathaa taxonomy table to the true reference taxonomies by their accession
-  synth.parathaa2 <- left_join(synth.parathaa, taxdata, by="AccID")
+  if(SILVA){
+    synth.parathaa$AccID <- rownames(synth.parathaa)
+    synth.parathaa2 <- left_join(synth.parathaa, taxdata, by="AccID")
+  }else{
+    synth.parathaa$primaryAccession <- rownames(synth.parathaa)
+    synth.parathaa2 <- left_join(synth.parathaa, taxdata, by="primaryAccession")
+    
+  }
+
   
   #Format species name to match references
   synth.parathaa2 <- synth.parathaa2 %>% 
@@ -255,10 +268,17 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   
   #Grab dada2 taxonomy table
   synth.dada <- as.data.frame(tax_table(ps1_dada))
-  synth.dada$AccID <- rownames(synth.dada)
+  if(SILVA){
+    synth.dada$AccID <- rownames(synth.dada)
+    synth.dada2 <- left_join(synth.dada, taxdata, by="AccID")
+  }else{
+    synth.dada$primaryAccession <- rownames(synth.dada)
+    synth.dada2 <- left_join(synth.dada, taxdata, by="primaryAccession")
+  }
+
   
   #Comapre the reference taxonomy to dada2 assigned taxonomy in the same manner as above
-  synth.dada2 <- left_join(synth.dada, taxdata, by="AccID")
+
   synth.dada2 <- synth.dada2 %>% 
     mutate(Species.x = unlist(lapply(str_split(Species.x, ";"), FUN=function(x) paste0(word(x,1,2), collapse = ";" ))))
   synth.dada2 <- synth.dada2 %>% 
@@ -270,27 +290,72 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
            Flag.genus = ifelse(is.na(Genus.x), NA, Genus.y %in% str_split(Genus.x, ";", simplify = T))
     )
   
+  ##rename columns so they don't get confused.
+  
+  colnames(synth.dada3) <- gsub("\\.x", ".dada", colnames(synth.dada3))
+  colnames(synth.dada3) <- gsub("\\.y", ".silva", colnames(synth.dada3)) 
+  
+  colnames(synth.parathaa3) <- gsub("\\.x", ".parathaa", colnames(synth.parathaa3))
+  colnames(synth.parathaa3) <- gsub("\\.y", ".silva", colnames(synth.parathaa3))
   
   #Join the two comparison dataframes
-  compare.synth <- dplyr::full_join(synth.dada3, synth.parathaa3, by="AccID")
-  #Rename columns to what tool they correspond to
+  if(SILVA){
+    colnames(name.df)[2] <- "AccID"
+    
+    #dada info.
+    compare.synth <- name.df %>% 
+      left_join(synth.dada3[, grepl("dada|Flag|AccID", colnames(synth.dada3))], by="AccID")
+
+    #add parathaa info
+    compare.synth <- compare.synth %>% 
+      left_join(synth.parathaa3[, grepl("parathaa|Flag|AccID", colnames(synth.parathaa3))], by="AccID")
+    
+    compare.synth <- compare.synth %>% 
+      left_join(taxdata, by="AccID")
+  }else{
+      colnames(name.df)[2] <- "primaryAccession"
+      
+      #add dada assignments to all sequences that were attempted to assign profiles
+      compare.synth <- name.df %>% 
+        left_join(synth.dada3[, grepl("dada|Flag|primary", colnames(synth.dada3))], by="primaryAccession")
+      #add parathaa assignments
+      compare.synth <- compare.synth %>% 
+        left_join(synth.parathaa3[, grepl("parathaa|Flag|primary", colnames(synth.parathaa3))], by="primaryAccession")
+      compare.synth <- compare.synth %>% 
+        left_join(taxdata, by="primaryAccession")
+    }
+  
   compare.synth <- compare.synth %>% 
-    mutate(Species.silva = word(Species.y.y, 1, 2)) %>%
-    rename(Species.parathaa = Species.x.y,
-           Species.dada = Species.x.x,
-           Genus.dada = Genus.x.x,
-           Genus.parathaa = Genus.x.y,
-           Genus.silva = Genus.y.y)
+    #some data in silva has no speices name
+    mutate(Species.groundtruth = word(Species, 1, 2)) %>%
+    rename(Genus.groundtruth = Genus) %>%
+    rename(Family.groundtruth = Family) %>%
+    rename(Order.groundtruth = Order) %>%
+    rename(Class.groundtruth = Class) %>%
+    rename(Phylum.groundtruth = Phylum) %>%
+    rename(Kingdom.groundtruth = Kingdom) %>%
+    select(-Species)
+
   
   # Remove seqs with N characters: 
-  compare.synth <- compare.synth %>% filter(!AccID %in% nChars2)
+  if(length(nChars2) > 0)
+    compare.synth <- compare.synth %>% filter(!AccID %in% nChars2)
   # save the comparison data
   save(compare.synth, file= file.path(outputDir, paste0(regionName, "_full_comparisons.RData")))
   
   #write overall performance metrics for the comparison
-  t1 <- performance.table(compare.synth, "Species")
+  ##for species comparison we need to filter out taxa that don't have a ground truth speices
+  t1 <- performance.table(compare.synth %>% filter(!is.na(Species.groundtruth)), "Species")
+  t1 <- t1[-which(rownames(t1)=="Unassigned Correct"),] 
+  rownames(t1)[which(rownames(t1)=="Unassigned Incorrect")] <- "Unassigned"
   write.table(t1, file= file.path(outputDir, paste0(regionName, "_Species_performance.tsv")), sep="\t", col.names = NA)
-  t2 <- performance.table(compare.synth, "Genus")
+  
+  ## Genus level results
+  t2 <- performance.table(compare.synth %>% filter(!is.na(Genus.groundtruth)), "Genus")
+  
+  t2 <- t2[-which(rownames(t2)=="Unassigned Correct"),] 
+  rownames(t2)[which(rownames(t2)=="Unassigned Incorrect")] <- "Unassigned"
+  
   write.table(t2, file= file.path(outputDir, paste0(regionName, "_Genus_performance.tsv")), sep="\t", col.names = NA)
   
   
@@ -298,35 +363,46 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   ## In the adjusted metric we treat unassignments as "correct" if the underlying seed database didn't have that
   ## taxonomic group within it
   
-  ###Seed_genus is TRUE if the genus was included in the seed database. We do not want to change these assignments..
-  taxdata_seed <- taxdata %>% filter(primaryAccession %in% SeedTax$primaryAccession)
-  taxdata_SP <- word(taxdata_seed$Species, 1, 2)
-  taxdata_SP <- taxdata_SP[-which(is.na(taxdata_SP))]
-  compare.synth_adjust <- compare.synth %>% mutate(seed_genus=Genus.silva %in% taxdata_seed$Genus)
-  compare.synth_adjust <- compare.synth_adjust %>% mutate(seed_species=Species.silva %in% taxdata_SP)
+  # We only need to do this for SILVA we don't need to do this for GTDB benching since we already filtered
+  # the sequences we may want to do this in future if we do holdout GTDB benching but for now lets just
+  # make this run only if SILVA is TRUE
+  if(!historic){
+    ## would need to update this line since accessions are not consistent between GTDB releases 
+    ## if we want to bench historically.
+    taxdata_seed <- taxdata %>% filter(primaryAccession %in% SeedTax$primaryAccession)
+    taxdata_SP <- word(taxdata_seed$Species, 1, 2)
+    
+    if(SILVA){
+      taxdata_SP <- taxdata_SP[-which(is.na(taxdata_SP))]
+    }
+
+    compare.synth_adjust <- compare.synth %>% mutate(seed_genus=Genus.groundtruth %in% taxdata_seed$Genus)
+    compare.synth_adjust <- compare.synth_adjust %>% mutate(seed_species=Species.groundtruth %in% taxdata_SP)
+    
+    #Make a corrected genus flag where we set previous set to NA. Set to true if they are unassigned and not in the seed DB
+    compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.genus.x_cor=ifelse(is.na(Flag.genus.x) & !seed_genus, TRUE, Flag.genus.x))
+    compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.genus.y_cor=ifelse(is.na(Flag.genus.y) & !seed_genus, TRUE, Flag.genus.y))
+    
+    #Same as above for species
+    compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.x_cor=ifelse(is.na(Flag.x) & !seed_species, TRUE, Flag.x))
+    compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.y_cor=ifelse(is.na(Flag.y) & !seed_species, TRUE, Flag.y))
+    
+    
+    compare.synth_adjust$Flag.genus.x <- compare.synth_adjust$Flag.genus.x_cor
+    compare.synth_adjust$Flag.genus.y <- compare.synth_adjust$Flag.genus.y_cor
+    
+    compare.synth_adjust$Flag.x <- compare.synth_adjust$Flag.x_cor
+    compare.synth_adjust$Flag.y <- compare.synth_adjust$Flag.y_cor
+    
+    t3 <- performance.table(compare.synth_adjust, "Species")
+    write.table(t3, file= file.path(outputDir, paste0(regionName, "_Species_performance_adjust.tsv")), sep="\t", col.names = NA)
+    t4 <- performance.table(compare.synth_adjust, "Genus")
+    write.table(t4, file= file.path(outputDir, paste0(regionName, "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
+    
+    save(compare.synth_adjust, file= file.path(outputDir, paste0(regionName, "_full_comparisons_adjust.RData")))
+  }
   
-  #Make a corrected genus flag where we set previous NAs to true if they are unassigned and not in the seed DB
-  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.genus.x_cor=ifelse(is.na(Flag.genus.x) & !seed_genus, TRUE, Flag.genus.x))
-  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.genus.y_cor=ifelse(is.na(Flag.genus.y) & !seed_genus, TRUE, Flag.genus.y))
-  
-  #Same as above for species
-  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.x_cor=ifelse(is.na(Flag.x) & !seed_species, TRUE, Flag.x))
-  compare.synth_adjust <- compare.synth_adjust %>% mutate(Flag.y_cor=ifelse(is.na(Flag.y) & !seed_species, TRUE, Flag.y))
-  
-  
-  compare.synth_adjust$Flag.genus.x <- compare.synth_adjust$Flag.genus.x_cor
-  compare.synth_adjust$Flag.genus.y <- compare.synth_adjust$Flag.genus.y_cor
-  
-  compare.synth_adjust$Flag.x <- compare.synth_adjust$Flag.x_cor
-  compare.synth_adjust$Flag.y <- compare.synth_adjust$Flag.y_cor
-  
-  t3 <- performance.table(compare.synth_adjust, "Species")
-  write.table(t3, file= file.path(outputDir, paste0(regionName, "_Species_performance_adjust.tsv")), sep="\t", col.names = NA)
-  t4 <- performance.table(compare.synth_adjust, "Genus")
-  write.table(t4, file= file.path(outputDir, paste0(regionName, "_Genus_performance_adjust.tsv")), sep="\t", col.names = NA)
-  
-  save(compare.synth_adjust, file= file.path(outputDir, paste0(regionName, "_full_comparisons_adjust.RData")))
-}
+ }
 
 ## Define variables used across all function calls
 ## 

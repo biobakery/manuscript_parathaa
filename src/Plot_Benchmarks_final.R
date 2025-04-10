@@ -237,6 +237,8 @@ gt = ggplot_gtable(ggplot_build(species_plots[[2]]))
 gt$heights[15] = 3*gt$heights[15]
 grid.draw(gt)
 
+species_plots[[1]]
+
 ggsave(filename = file.path(opts$output, "Species_full_data.pdf"), plot=species_plots[[1]], height = 8.25, width=11, units = "in")
 ggsave(filename = file.path(opts$output, "Species_filt_data.pdf"), plot=species_plots[[2]], height = 6, width=8, units = "in")
 
