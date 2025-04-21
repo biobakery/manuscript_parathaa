@@ -78,6 +78,13 @@ silva_taxonomy_file="input/taxmap_slv_ssu_ref_138.1.txt"
 dada2_seed_db="input/20231215.silva.seed_v138_1.ng.dada.fasta"
 dada2_seed_db_sp="input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
 dada2_seed_db_FL="input/20231215.silva.seed_v138_1.ng.dada_FL.fasta"
+IDtaxa_db="input/IDtaxa_dbs"
+IDtaxa_db_spec="input/IDtaxa_dbs/IdTaxa_20231215.silva.seed_v138_1.ng_FL_sp.RData"
+IDtaxa_db_genus="input/IDtaxa_dbs/IdTaxa_20231215.silva.seed_v138_1.ng_FL.RData"
+
+IDTaxa_out="output/IDTaxa"
+IDTaxa_out_holdout1="output/IDTaxa/holdout1"
+IDTaxa_holdout1_target="output/IDTaxa/holdout1/V4V5_Species_performance.tsv"
 
 syn_IDs="input/subsampleIDs_SeedGenera.txt"
 silva_full_db="input/SILVA_138.1_SSURef_tax_silva.fasta"
@@ -284,6 +291,38 @@ Mine_V1V3_abundance_tab="input/Mine_V1V3/feature-table.tsv"
 Mine_V1V3_out="output/Mine_V1V3"
 Mine_V1V3_assignments="output/Mine_V1V3/taxonomic_assignments.tsv"
 Mine_V1V3_rds_plot="output/Mine_V1V3/average_plots.RDS"
+
+
+## GTDB Addition which is a historic validation
+GTDB_test_seqs_V1V2="input/GTDB_testing/V1V2/novel_seqs_to_bench.pcr.fasta"
+GTDB_test_seqs_V4V5="input/GTDB_testing/V4V5/novel_seqs_to_bench.pcr.fasta"
+GTDB_test_seqs_FL="input/GTDB_testing/FL/novel_seqs_to_bench.fasta"
+
+## these should eventually be added to our server and downloaded.
+GTDB_parathaa_DB_V1V2="input/GTDB_testing/GTDBv202_V1V2"
+GTDB_parathaa_DB_V4V5="input/GTDB_testing/GTDBv202_V4V5"
+GTDB_parathaa_DB_FL="input/GTDB_testing/GTDBv202_FL"
+
+## Add GTDB v220 taxonomy files
+GTDBv220_taxonomy="input/GTDB_testing/bac120_ar53_taxonomy_parathaa_format.txt"
+
+## GTDB outputs
+GTDB_output="output/GTDB_benchv202_v220"
+GTDB_output_V1V2="output/GTDB_benchv202_v220/V1V2"
+GTDB_outputs_V1V2_target="output/GTDB_benchv202_v220/V1V2/taxonomic_assignments.tsv"
+
+GTDB_output_V4V5="output/GTDB_benchv202_v220/V4V5"
+GTDB_outputs_V4V5_target="output/GTDB_benchv202_v220/V4V5/taxonomic_assignments.tsv"
+
+GTDB_output_FL="output/GTDB_benchv202_v220/FL"
+GTDB_outputs_FL_target="output/GTDB_benchv202_v220/FL/taxonomic_assignments.tsv"
+
+GTDB_dada_db="input/GTDB_testing/bac120_ar122_ssu_R202_1400_no_ambig_dada_noSP.fna"
+GTDB_dada_db_sp="input/GTDB_testing/bac120_ar122_ssu_R202_1400_no_ambig_dada_sp.fna"
+GTDB_dada_db_FL="input/GTDB_testing/bac120_ar122_ssu_R202_1400_no_ambig_dada.fna"
+
+GTDB_benchtarget="output/GTDB_benchv202_v220/V1V2/V1V2_Species_performance.tsv"
+
 
 #### Prep required files ####
 workflow.add_task(
@@ -655,6 +694,13 @@ workflow.add_task(
     depends=V4V5_holdoutOG_reads
 )
 
+# Generate IDTaxa database
+workflow.add_task(
+    "mkdir [args[0]]; Rscript create.seedDB.IDTaxa.R -s [args[1]] -o [args[0]]",
+    args=[IDtaxa_db, dada2_seed_db_FL],
+    targets=[IDtaxa_db_spec, IDtaxa_db_genus]
+)
+
 if(not args.skipBench):
     ### RUN PARATHAA
     #run parathaa on V1V2 synthetic using default specific mode
@@ -878,7 +924,7 @@ if(not args.skipBench):
     # Run script to benchmark original V1V2 and V4V5 synthetic data
 
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_para_taxa, V1V2_para_taxa, V4V5_syn_reads, V1V2_syn_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, original_bench_out],
         targets=[original_V1V2_bench, original_V4V5_bench],
@@ -887,7 +933,7 @@ if(not args.skipBench):
 
     #run script to benchmark even genus data
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_even_tax, V1V2_even_tax, V4V5_even_reads, V1V2_even_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, even_bench_out],
         targets=[even_V1V2_bench, even_V4V5_bench],
@@ -897,7 +943,7 @@ if(not args.skipBench):
 
     #run script to benchmark novel genus data
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_novel_tax, V1V2_novel_tax, V4V5_novel_reads, V1V2_novel_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, novel_bench_out],
         targets=[novel_V1V2_bench, novel_V4V5_bench],
@@ -906,7 +952,7 @@ if(not args.skipBench):
 
     #run script to benchmark holdout 1
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout1_tax, V1V2_holdout1_tax, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, holdout1_bench_out],
         targets=[holdout1_V1V2_bench, holdout1_V4V5_bench],
@@ -914,7 +960,7 @@ if(not args.skipBench):
     )
 
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout2_tax, V1V2_holdout2_tax, V4V5_holdout2_reads, V1V2_holdout2_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, holdout2_bench_out],
         targets=[holdout2_V1V2_bench, holdout2_V4V5_bench],
@@ -922,7 +968,7 @@ if(not args.skipBench):
     )
     
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdout3_tax, V1V2_holdout3_tax, V4V5_holdout3_reads, V1V2_holdout3_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, holdout3_bench_out],
         targets=[holdout3_V1V2_bench, holdout3_V4V5_bench],
@@ -931,20 +977,46 @@ if(not args.skipBench):
     
     #holdout original
     workflow.add_task(
-        "Rscript src/Plots.Table.1_dev.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
+        "Rscript src/V1V2_V4V5_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryV1V2 [depends[5]] -t [depends[6]] -o [args[1]] -s [depends[7]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_holdoutOG_tax, V1V2_holdoutOG_tax, V4V5_holdoutOG_reads, V1V2_holdoutOG_reads, silva_taxonomy_file, silva_seed_tax],
         args=[args.paraDir, holdoutOG_bench_out],
         targets=[holdoutOG_V1V2_bench, holdoutOG_V4V5_bench],
         name="Benchmarking holdout original assignments"
     )
     
+    #add task to run IDTAXA on holdout1 data for benchmarking
+    workflow.add_task(
+      "mkdir [args[0]]; mkdir [args[1]]",
+      args=[IDTaxa_out, IDTaxa_out_holdout1],
+      name="Making IDTaxa output directories"
+    
+    )
+    
+    if(args.benchFL):
+        
+        workflow.add_task(
+            "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]]",
+            depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
+            args=[IDTaxa_out_holdout1, args.threads, args.paraDir],
+            targets=[IDTaxa_holdout1_target],
+            name="Benchmarking IDTaxa"
+        )
+    else:
+        workflow.add_task(
+            "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]] --runFL TRUE --queryFL [depends[6]]",
+            depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax, FL_holdout1_reads_filt],
+            args=[IDTaxa_out_holdout1, args.threads, args.paraDir],
+            targets=[IDTaxa_holdout1_target],
+            name="Benchmarking IDTaxa"
+                    
+        )
 
     if(args.benchFL):
         
         ## Benchmark using naive bayes only
         #Bench original FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_original_tax, FL_syn_reads_filt, silva_seed_tax, original_V1V2_bench],
             args=[args.paraDir, FL_original_bench_out, args.dadaMinBoot],
             targets=[FL_original_bench],
@@ -953,7 +1025,7 @@ if(not args.skipBench):
         )
         #Bench even FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_even_tax, FL_even_genus_reads_filt, silva_seed_tax, even_V1V2_bench],
             args=[args.paraDir, FL_even_bench_out, args.dadaMinBoot],
             targets=[FL_even_bench],
@@ -961,7 +1033,7 @@ if(not args.skipBench):
         )
         #Bench novel FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_novel_tax, FL_novel_genus_reads_filt, silva_seed_tax, novel_V1V2_bench],
             args=[args.paraDir, FL_novel_bench_out, args.dadaMinBoot],
             targets=[FL_novel_bench],
@@ -969,7 +1041,7 @@ if(not args.skipBench):
         )
         #Bench holdout1 FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout1_tax, FL_holdout1_reads_filt, silva_seed_tax, holdout1_V1V2_bench],
             args=[args.paraDir, FL_holdout1_bench_out, args.dadaMinBoot],
             targets=[FL_holdout1_bench],
@@ -977,7 +1049,7 @@ if(not args.skipBench):
         )
         #Bench holdout2 FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout2_tax, FL_holdout2_reads_filt, silva_seed_tax, holdout2_V1V2_bench],
             args=[args.paraDir, FL_holdout2_bench_out, args.dadaMinBoot],
             targets=[FL_holdout2_bench],
@@ -985,7 +1057,7 @@ if(not args.skipBench):
         )
         #Bench holdout3 FL
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdout3_tax, FL_holdout3_reads_filt, silva_seed_tax, holdout3_V1V2_bench],
             args=[args.paraDir, FL_holdout3_bench_out, args.dadaMinBoot],
             targets=[FL_holdout3_bench],
@@ -993,7 +1065,7 @@ if(not args.skipBench):
         )
         
         workflow.add_task(
-            "Rscript src/full_length_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
+            "Rscript src/FL_dada2_bench.R -p [args[0]] --dada_db_FL [depends[0]] -t [depends[1]] -o [args[1]] --paraAssign [depends[2]] --query [depends[3]] -s [depends[4]] -b [args[2]]",
             depends=[dada2_seed_db_FL, silva_taxonomy_file, FL_holdoutOG_tax, FL_holdoutOG_reads_filt, silva_seed_tax, holdoutOG_V1V2_bench],
             args=[args.paraDir, FL_holdoutOG_bench_out, args.dadaMinBoot],
             targets=[FL_holdoutOG_bench],
@@ -1003,7 +1075,7 @@ if(not args.skipBench):
         
         ## benchmark using naive bayes + exact species matching for species
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_original_tax, FL_syn_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, original_bench_out],
             targets=[FL_original_exact_bench],
@@ -1012,7 +1084,7 @@ if(not args.skipBench):
 
         #run script to benchmark even genus data
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_even_tax, FL_even_genus_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, even_bench_out],
             targets=[FL_even_exact_bench],
@@ -1022,7 +1094,7 @@ if(not args.skipBench):
 
         #run script to benchmark novel genus data
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_novel_tax, FL_novel_genus_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, novel_bench_out],
             targets=[FL_novel_exact_bench],
@@ -1031,7 +1103,7 @@ if(not args.skipBench):
 
         #run script to benchmark holdout 1
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout1_tax, FL_holdout1_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout1_bench_out],
             targets=[FL_holdout1_exact_bench],
@@ -1039,7 +1111,7 @@ if(not args.skipBench):
         )
 
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout2_tax, FL_holdout2_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout2_bench_out],
             targets=[FL_holdout2_exact_bench],
@@ -1047,7 +1119,7 @@ if(not args.skipBench):
         )
         
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdout3_tax, FL_holdout3_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdout3_bench_out],
             targets=[FL_holdout3_exact_bench],
@@ -1055,13 +1127,59 @@ if(not args.skipBench):
         )
         
         workflow.add_task(
-            "Rscript src/Full_length_bench_exact_match.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
+            "Rscript src/FL_exact_dada2_bench.R -p [args[0]] --dada_db [depends[0]] --dada_db_sp [depends[1]] --paraAssign [depends[2]] --query [depends[3]] -t [depends[4]] -o [args[1]] -s [depends[5]]",
             depends=[dada2_seed_db, dada2_seed_db_sp, FL_holdoutOG_tax, FL_holdoutOG_reads_filt, silva_taxonomy_file, silva_seed_tax],
             args=[args.paraDir, holdoutOG_bench_out],
             targets=[FL_holdoutOG_exact_bench],
             name="Benchmarking FL holout OG assignments using exact matches"
         )
             
+
+#### Add GTDB testing and benchmarking
+
+
+### V1V2
+workflow.add_task(
+    "mkdir [args[0]]; parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[2]] --threads [args[1]]"+add_sens,
+    depends=[GTDB_parathaa_DB_V1V2, GTDB_test_seqs_V1V2],
+    targets=GTDB_outputs_V1V2_target,
+    args=[GTDB_output, args.threads, GTDB_output_V1V2],
+    name="Assigning taxonomy to GTDB benchmark V1V2"
+    
+)
+
+### V4V5
+workflow.add_task(
+    "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
+    depends=[GTDB_parathaa_DB_V4V5, GTDB_test_seqs_V4V5],
+    targets=GTDB_outputs_V4V5_target,
+    args=[args.threads, GTDB_output_V4V5],
+    name="Assigning taxonomy to GTDB benchmark V4V5"
+    
+)
+
+### Full length
+workflow.add_task(
+    "parathaa_run_taxa_assignment --treeFiles [depends[0]] --query [depends[1]] --output [args[1]] --threads [args[0]]"+add_sens,
+    depends=[GTDB_parathaa_DB_FL, GTDB_test_seqs_FL],
+    targets=GTDB_outputs_FL_target,
+    args=[args.threads, GTDB_output_FL],
+    name="Assigning taxonomy to GTDB benchmark FL"
+)
+
+#### Add benchmarking for GTDB
+
+workflow.add_task(
+    "Rscript GTDB_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFl [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
+    depends=[GTDB_outputs_V1V2_target, GTDB_outputs_V4V5_target, GTDB_outputs_FL_target, GTDB_test_seqs_FL, GTDB_test_seqs_V1V2, GTDB_test_seqs_V4V5, GTDB_test_seqs_FL, GTDB_dada_db, GTDB_dada_db_sp, GTDB_dada_db_FL, GTDBv220_taxonomy],
+    args=[args.paraDir, GTDB_output],
+    targets=[GTDB_benchtarget],
+    name="Benchmarking GTDB V1V2, V4V5, and FL against DADA2"
+    
+    
+)
+
+
 
 ########### End of benchmarking ###############
 
@@ -1154,7 +1272,7 @@ if(not args.benchonly):
     
     ## Generate manuscript figure from RDS files
     workflow.add_task(
-        "Rscript src/real_data_plots.R --OralV4V5 [args[0]] --MineV4V5 [args[1]] --MineV1V3 [args[2]] --output [args[3]]",
+        "Rscript src/Real_data_plots_final.R --OralV4V5 [args[0]] --MineV4V5 [args[1]] --MineV1V3 [args[2]] --output [args[3]]",
         depends=[Oral_rds_plot, Mine_V1V3_rds_plot, Mine_V4V5_rds_plot],
         args=[Oral_V4V5_out, Mine_V4V5_out, Mine_V1V3_out, args.output],
         name="Generating final real data figures"
