@@ -696,7 +696,7 @@ workflow.add_task(
 
 # Generate IDTaxa database
 workflow.add_task(
-    "mkdir [args[0]]; Rscript create.seedDB.IDTaxa.R -s [args[1]] -o [args[0]]",
+    "mkdir [args[0]]; Rscript src/create.seedDB.IDTaxa.R -s [args[1]] -o [args[0]]",
     args=[IDtaxa_db, dada2_seed_db_FL],
     targets=[IDtaxa_db_spec, IDtaxa_db_genus]
 )
@@ -1170,7 +1170,7 @@ workflow.add_task(
 #### Add benchmarking for GTDB
 
 workflow.add_task(
-    "Rscript GTDB_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFl [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
+    "Rscript src/GTDB_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFl [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
     depends=[GTDB_outputs_V1V2_target, GTDB_outputs_V4V5_target, GTDB_outputs_FL_target, GTDB_test_seqs_FL, GTDB_test_seqs_V1V2, GTDB_test_seqs_V4V5, GTDB_test_seqs_FL, GTDB_dada_db, GTDB_dada_db_sp, GTDB_dada_db_FL, GTDBv220_taxonomy],
     args=[args.paraDir, GTDB_output],
     targets=[GTDB_benchtarget],
