@@ -50,8 +50,8 @@ inFileTaxdata <- opts$t
 ##### CALL FUNCTION ######
 
 ## V1V2
-message('Running V1V2 bench')
-run.synthetic.data(parathaaFile = as.character(opts$paraAssignV1V2), 
+message(opts$paraAssignV1V2)
+run.synthetic.data(parathaaFile = opts$paraAssignV1V2, 
                    sequenceFile = opts$queryV1V2,
                    regionName = "V1V2", 
                    outputDir=paste0(opts$o, "/V1V2/", sep=""),
