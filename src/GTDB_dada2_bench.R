@@ -3,7 +3,7 @@
 require(docopt)
 
 'Usage:
-    GTDB_dada2_bench.R [-p <parathaa_PATH> --dada_db <dada2_db> --dada_db_sp <dada2_db_sp> -t <input_taxonomy> -o <output> --paraAssignV1V2 <taxonomy_file> --paraAssignV4V5 <taxonomy_file> --paraAssignFL <taxonomy_file> --queryV1V2 <query seqs> --queryV4V5 <query seqs> --queryFL <query seqs>]
+    GTDB_dada2_bench.R [-p <parathaa_PATH> --dada_db <dada2_db> --dada_db_sp <dada2_db_sp> --dada_db_FL <dada2_db_FL> -t <input_taxonomy> -o <output> --paraAssignV1V2 <taxonomy_file> --paraAssignV4V5 <taxonomy_file> --paraAssignFL <taxonomy_file> --queryV1V2 <query seqs> --queryV4V5 <query seqs> --queryFL <query seqs>]
   
   
 Options:
