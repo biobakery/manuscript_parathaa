@@ -992,7 +992,7 @@ if(not args.skipBench):
     
     )
     
-    if(args.benchFL):
+    if(not args.benchFL):
         
         workflow.add_task(
             "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]]",
