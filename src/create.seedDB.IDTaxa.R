@@ -98,7 +98,7 @@ message("A total of ", length(probSeqs), " remain after 10 rounds of iterative t
 
 
 message("Saving Species level IDTaxa database")
-trainingSet %>% write_rds(paste0(opts$o,"IdTaxa_20231215.silva.seed_v138_1.ng_FL_sp.RData"))  # again, make sure this is right
+trainingSet %>% write_rds(paste0(opts$o,"/IdTaxa_20231215.silva.seed_v138_1.ng_FL_sp.RData"))  # again, make sure this is right
 
 
 
@@ -176,7 +176,7 @@ for (i in seq_len(maxIterations)) {
 message("A total of ", length(probSeqs), " remain problem seqs after 10 rounds of iterative training")
 
 message("Saving Genus level IDTaxa database")
-trainingSet %>% write_rds(paste0(opts$o,"IdTaxa_20231215.silva.seed_v138_1.ng_FL.RData"))  # again, make sure this is right
+trainingSet %>% write_rds(paste0(opts$o,"/IdTaxa_20231215.silva.seed_v138_1.ng_FL.RData"))  # again, make sure this is right
 
 
 
