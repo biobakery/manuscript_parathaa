@@ -534,7 +534,12 @@ Bench_IDTAXA <- function(sequenceFile, genus_class, species_class, threads=8, in
   
   ##turn into table to be used
   genus_assignments <- data.frame(do.call(rbind, ids_genus))
-  genus_assignments$AccID <- gsub("\t.*", "", rownames(genus_assignments))
+  if(regionName=="FL"){
+    genus_assignments$AccID <- gsub(" .*", "", rownames(genus_assignments))
+  }else{
+    genus_assignments$AccID <- gsub("\t.*", "", rownames(genus_assignments))
+  }
+
   
   genus_assignments <- genus_assignments %>% mutate(confidence_level=map(genus_assignments$confidence, function(x) x[1:7])) %>%
     unnest_wider(confidence_level, names_sep = "_")
@@ -558,7 +563,12 @@ Bench_IDTAXA <- function(sequenceFile, genus_class, species_class, threads=8, in
   genus_assignments$Genus_Assignment[grep("unclassified_", genus_assignments$Genus_Assignment)] <- NA
 
   ## create comparison frame
-  ids <- gsub("\t.*", "", names(dna))
+  if(regionName=="FL"){
+    ids <- gsub(" .*", "", names(dna))
+  }else{
+    ids <- gsub("\t.*", "", names(dna))
+  }
+
   
   #grab ground truths
   
@@ -625,7 +635,12 @@ Bench_IDTAXA <- function(sequenceFile, genus_class, species_class, threads=8, in
   
   ##turn into table to be used
   specs_assignments <- data.frame(do.call(rbind, ids_specs))
-  specs_assignments$AccID <- gsub("\t.*", "", rownames(specs_assignments))
+  if(regionName=="FL"){
+    specs_assignments$AccID <- gsub(" .*", "", rownames(specs_assignments))
+  }else{
+    specs_assignments$AccID <- gsub("\t.*", "", rownames(specs_assignments))
+    
+  }
   
   specs_assignments <- specs_assignments %>% mutate(confidence_level=map(specs_assignments$confidence, function(x) x[1:7])) %>%
     unnest_wider(confidence_level, names_sep = "_")
