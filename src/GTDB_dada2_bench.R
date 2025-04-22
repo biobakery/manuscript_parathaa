@@ -8,17 +8,17 @@ require(docopt)
   
 Options:
   -p directory where parathaa github repo is cloned
-  --paraAssignV1V2 
-  --paraAssignV4V5
-  --paraAssignFL 
-  --queryV1V2
-  --queryV4V5
-  --queryFL
+  --paraAssignV1V2 parathaa V1V2 assignments
+  --paraAssignV4V5 parathaa V4V5 assignments
+  --paraAssignFL parathaa FL assignments
+  --queryV1V2 V1V2 querys
+  --queryV4V5 V4V5 querys
+  --queryFL full length querys
   --dada_db location of species classifer
-  --dada_db_sp number of threads
-  --dada_db_FL
+  --dada_db_sp location of dada sp db 
+  --dada_db_FL location of dada FL db
   -t input taxonomy
-  -o output
+  -o output output directory
   ]' -> doc
 
 
