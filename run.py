@@ -695,8 +695,8 @@ workflow.add_task(
 
 # Generate IDTaxa database
 workflow.add_task(
-    "mkdir [args[0]]; Rscript src/create.seedDB.IDTaxa.R -s [args[1]] -o [args[0]]",
-    args=[IDtaxa_db, dada2_seed_db_FL],
+    "Rscript src/create.seedDB.IDTaxa.R -s [args[1]] -o [args[0]]",
+    args=[args.output, dada2_seed_db_FL],
     depends=[dada2_seed_db_FL],
     targets=[IDtaxa_db_spec, IDtaxa_db_genus]
 )
