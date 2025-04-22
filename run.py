@@ -277,6 +277,7 @@ Oral_V4V5_out="output/Oral_V4V5/"
 Oral_V4V5_assignments="output/Oral_V4V5/taxonomic_assignments.tsv"
 Oral_rds_plot="output/Oral_V4V5/average_plots.RDS"
 
+
 ## target files for Mine V4V5 data
 Mine_V4V5_reads="input/Mine_V4V5/dna-sequences.fasta"
 Mine_V4V5_abundance_tab="input/Mine_V4V5/feature-table.tsv"
@@ -695,8 +696,8 @@ workflow.add_task(
 
 # Generate IDTaxa database
 workflow.add_task(
-    "Rscript src/create.seedDB.IDTaxa.R -s [args[1]] -o [args[0]]",
-    args=[args.output, dada2_seed_db_FL],
+    "Rscript src/create.seedDB.IDTaxa.R -s [args[0]] -o input",
+    args=[dada2_seed_db_FL],
     depends=[dada2_seed_db_FL],
     targets=[IDtaxa_db_spec, IDtaxa_db_genus]
 )
@@ -1170,7 +1171,7 @@ workflow.add_task(
 #### Add benchmarking for GTDB
 
 workflow.add_task(
-    "Rscript src/GTDB_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFl [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
+    "Rscript src/GTDB_dada2_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFl [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
     depends=[GTDB_outputs_V1V2_target, GTDB_outputs_V4V5_target, GTDB_outputs_FL_target, GTDB_test_seqs_FL, GTDB_test_seqs_V1V2, GTDB_test_seqs_V4V5, GTDB_test_seqs_FL, GTDB_dada_db, GTDB_dada_db_sp, GTDB_dada_db_FL, GTDBv220_taxonomy],
     args=[args.paraDir, GTDB_output],
     targets=[GTDB_benchtarget],
@@ -1205,13 +1206,13 @@ if(not args.benchonly):
     )
 
     # Run script to generate mock figures
-    workflow.add_task(
+"""     workflow.add_task(
         "Rscript src/Plots.Figure.2.R --dada_db [depends[0]] --dada_db_sp [depends[1]] -o [args[0]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --fastaV4V5 [args[1]] --fastaV1V2 [args[2]] --fastaV1V2uni [args[3]] --V1V2Counts [args[4]]",
         depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_mock_assignment, V1V2_mock_assignment],
         args=[args.output, V4V5_mock_fasta, V1V2_mock_fasta, V1V2_mock_fasta_uni, V1V2_mock_counts],
         targets=Fig2,
         name="Generate mock data figure (figure2)"
-    )
+    ) """
     
     # Run parathaa on Oral V4V5 data
     workflow.add_task(
@@ -1270,13 +1271,13 @@ if(not args.benchonly):
         name="Generating RDS files for plotting Mine V1V3 data"
     )
     
-    ## Generate manuscript figure from RDS files
+"""     ## Generate manuscript figure from RDS files
     workflow.add_task(
         "Rscript src/Real_data_plots_final.R --OralV4V5 [args[0]] --MineV4V5 [args[1]] --MineV1V3 [args[2]] --output [args[3]]",
         depends=[Oral_rds_plot, Mine_V1V3_rds_plot, Mine_V4V5_rds_plot],
         args=[Oral_V4V5_out, Mine_V4V5_out, Mine_V1V3_out, args.output],
         name="Generating final real data figures"
-    )
+    ) """
 
 #done
 workflow.go()
