@@ -50,7 +50,8 @@ inFileTaxdata <- opts$t
 ##### CALL FUNCTION ######
 
 ## V1V2
-run.synthetic.data(parathaaFile = opts$paraAssignV1V2, 
+message('Running V1V2 bench')
+run.synthetic.data(parathaaFile = as.charcter(opts$paraAssignV1V2), 
                    sequenceFile = opts$queryV1V2,
                    regionName = "V1V2", 
                    outputDir=paste0(opts$o, "/V1V2/", sep=""),
@@ -61,6 +62,7 @@ run.synthetic.data(parathaaFile = opts$paraAssignV1V2,
 
 
 # V4V5
+message("Running V4V5 bench")
 run.synthetic.data(parathaaFile = opts$paraAssignV4V5, 
                    sequenceFile = opts$queryV4V5,
                    regionName = "V4V5", 
@@ -71,6 +73,7 @@ run.synthetic.data(parathaaFile = opts$paraAssignV4V5,
                    inFileTaxdata = inFileTaxdata, SILVA = F, historic = T)
 
 # Full length
+message("Running FL bench")
 run.synthetic.data(parathaaFile = opts$paraAssignFL, 
                    sequenceFile = opts$queryFL,
                    regionName = "FL", 
@@ -80,6 +83,7 @@ run.synthetic.data(parathaaFile = opts$paraAssignFL,
                    inFileTaxdata = inFileTaxdata, SILVA = F, historic = T, full_length = T, minboot = 80)
 
 # Full length exact
+message("Running FL exact Bench")
 run.synthetic.data(parathaaFile = opts$paraAssignFL, 
                    sequenceFile = opts$queryFL,
                    regionName = "FL", 
