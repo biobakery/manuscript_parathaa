@@ -1206,13 +1206,13 @@ if(not args.benchonly):
     )
 
     # Run script to generate mock figures
-"""     workflow.add_task(
-        "Rscript src/Plots.Figure.2.R --dada_db [depends[0]] --dada_db_sp [depends[1]] -o [args[0]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --fastaV4V5 [args[1]] --fastaV1V2 [args[2]] --fastaV1V2uni [args[3]] --V1V2Counts [args[4]]",
-        depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_mock_assignment, V1V2_mock_assignment],
-        args=[args.output, V4V5_mock_fasta, V1V2_mock_fasta, V1V2_mock_fasta_uni, V1V2_mock_counts],
-        targets=Fig2,
-        name="Generate mock data figure (figure2)"
-    ) """
+    # workflow.add_task(
+    #     "Rscript src/Plots.Figure.2.R --dada_db [depends[0]] --dada_db_sp [depends[1]] -o [args[0]] --paraAssignV4V5 [depends[2]] --paraAssignV1V2 [depends[3]] --fastaV4V5 [args[1]] --fastaV1V2 [args[2]] --fastaV1V2uni [args[3]] --V1V2Counts [args[4]]",
+    #     depends=[dada2_seed_db, dada2_seed_db_sp, V4V5_mock_assignment, V1V2_mock_assignment],
+    #     args=[args.output, V4V5_mock_fasta, V1V2_mock_fasta, V1V2_mock_fasta_uni, V1V2_mock_counts],
+    #     targets=Fig2,
+    #     name="Generate mock data figure (figure2)"
+    # )
     
     # Run parathaa on Oral V4V5 data
     workflow.add_task(
