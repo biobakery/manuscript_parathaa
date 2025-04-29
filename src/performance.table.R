@@ -68,7 +68,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   name.df <- data.frame("sequence" = unlist(getSequence(getNames, as.string=T)), taxaIDs = names1)
   
   #grab sequences with N in them as they need to be removed for species assignment by DADA2
-  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H")) %>% pull(taxaIDs)
+  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H|V")) %>% pull(taxaIDs)
   
   ## Next, assign taxonomy to genus level with DADA2 (takes a few minutes)
   if(full_length){
@@ -113,7 +113,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
     ## Remove sequences with undefined ("N") bases, store until after species assignment
     taxa.test <- as.data.frame(taxa)
     taxa.test$taxaIDs <- names1
-    nChars <- grep("N|M|R|K|Y|S|W|D|B|H", rownames(taxa.test))
+    nChars <- grep("N|M|R|K|Y|S|W|D|B|H|V", rownames(taxa.test))
     print(paste("Removing", length(nChars), "sequences with N bases"))
     withNbases <- taxa.test[nChars,]
     if(length(nChars!=0))
@@ -524,7 +524,7 @@ Bench_IDTAXA <- function(sequenceFile, genus_class, species_class, threads=8, in
   name.df <- data.frame("sequence" = unlist(getSequence(getNames, as.string=T)), taxaIDs = names1)
   
   #grab sequences with N in them as they need to be removed for species assignment by DADA2
-  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H")) %>% pull(taxaIDs)
+  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H|V")) %>% pull(taxaIDs)
   
   dna <- DNAStringSet(getSequences(sequenceFile))
   ##genus level assignments
