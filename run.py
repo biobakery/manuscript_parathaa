@@ -1171,7 +1171,7 @@ workflow.add_task(
 #### Add benchmarking for GTDB
 
 workflow.add_task(
-    "Rscript src/GTDB_dada2_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFl [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
+    "Rscript src/GTDB_dada2_bench.R -p [args[0]] --paraAssignV1V2 [depends[0]] --paraAssignV4V5 [depends[1]] --paraAssignFL [depends[2]] --queryV1V2 [depends[3]] --queryV4V5 [depends[4]] --queryFL [depends[5]] --dada_db [depends[6]] --dada_db_sp [depends[7]] --dada_db_FL [depends[8]] -t [depends[9]] -o [args[1]]",
     depends=[GTDB_outputs_V1V2_target, GTDB_outputs_V4V5_target, GTDB_outputs_FL_target, GTDB_test_seqs_FL, GTDB_test_seqs_V1V2, GTDB_test_seqs_V4V5, GTDB_test_seqs_FL, GTDB_dada_db, GTDB_dada_db_sp, GTDB_dada_db_FL, GTDBv220_taxonomy],
     args=[args.paraDir, GTDB_output],
     targets=[GTDB_benchtarget],
