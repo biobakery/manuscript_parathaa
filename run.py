@@ -85,6 +85,12 @@ IDTaxa_out="output/IDTaxa"
 IDTaxa_out_holdout1="output/IDTaxa/holdout1"
 IDTaxa_holdout1_target="output/IDTaxa/holdout1/V4V5_Species_performance.tsv"
 
+IDTaxa_out_holdout2="output/IDTaxa/holdout2"
+IDTaxa_holdout2_target="output/IDTaxa/holdout2/V4V5_Species_performance.tsv"
+
+IDTaxa_out_holdout3="output/IDTaxa/holdout3"
+IDTaxa_holdout3_target="output/IDTaxa/holdout3/V4V5_Species_performance.tsv"
+
 syn_IDs="input/subsampleIDs_SeedGenera.txt"
 silva_full_db="input/SILVA_138.1_SSURef_tax_silva.fasta"
 silva_full_db_DNA="input/SILVA_138.1_SSURef_tax_silva.DNA.fasta"
@@ -987,8 +993,8 @@ if(not args.skipBench):
     
     #add task to run IDTAXA on holdout1 data for benchmarking
     workflow.add_task(
-      "mkdir [args[0]]; mkdir [args[1]]",
-      args=[IDTaxa_out, IDTaxa_out_holdout1],
+      "mkdir [args[0]]; mkdir [args[1]]; mkdir [args[2]]; mkdir [args[3]]",
+      args=[IDTaxa_out, IDTaxa_out_holdout1, IDTaxa_out_holdout2, IDTaxa_out_holdout3],
       name="Making IDTaxa output directories"
     
     )
@@ -1000,15 +1006,49 @@ if(not args.skipBench):
             depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax],
             args=[IDTaxa_out_holdout1, args.threads, args.paraDir],
             targets=[IDTaxa_holdout1_target],
-            name="Benchmarking IDTaxa"
+            name="Benchmarking IDTaxa on holdout1"
         )
+        
+        workflow.add_task(
+            "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]]",
+            depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout2_reads, V1V2_holdout2_reads, silva_taxonomy_file, silva_seed_tax],
+            args=[IDTaxa_out_holdout2, args.threads, args.paraDir],
+            targets=[IDTaxa_holdout2_target],
+            name="Benchmarking IDTaxa on holdout2"
+        )
+         
+        workflow.add_task(
+            "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]]",
+            depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout3_reads, V1V2_holdout3_reads, silva_taxonomy_file, silva_seed_tax],
+            args=[IDTaxa_out_holdout3, args.threads, args.paraDir],
+            targets=[IDTaxa_holdout3_target],
+            name="Benchmarking IDTaxa on holdout3"
+        )
+        
     else:
         workflow.add_task(
             "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]] --runFL TRUE --queryFL [depends[6]]",
             depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout1_reads, V1V2_holdout1_reads, silva_taxonomy_file, silva_seed_tax, FL_holdout1_reads_filt],
             args=[IDTaxa_out_holdout1, args.threads, args.paraDir],
             targets=[IDTaxa_holdout1_target],
-            name="Benchmarking IDTaxa"
+            name="Benchmarking IDTaxa on holdout1"
+                    
+        )
+        
+        workflow.add_task(
+            "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]] --runFL TRUE --queryFL [depends[6]]",
+            depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout2_reads, V1V2_holdout2_reads, silva_taxonomy_file, silva_seed_tax, FL_holdout2_reads_filt],
+            args=[IDTaxa_out_holdout2, args.threads, args.paraDir],
+            targets=[IDTaxa_holdout2_target],
+            name="Benchmarking IDTaxa on holdout2"
+        )
+        
+        workflow.add_task(
+            "Rscript src/run_ID_taxa_bench.R --IDTAXA_spec_db [depends[0]] --IDTAXA_genus_db [depends[1]] --queryV4V5 [depends[2]] --queryV1V2 [depends[3]] -t [depends[4]] -o [args[0]] -s [depends[5]] --threads [args[1]] -p [args[2]] --runFL TRUE --queryFL [depends[6]]",
+            depends=[IDtaxa_db_spec, IDtaxa_db_genus, V4V5_holdout3_reads, V1V2_holdout3_reads, silva_taxonomy_file, silva_seed_tax, FL_holdout3_reads_filt],
+            args=[IDTaxa_out_holdout3, args.threads, args.paraDir],
+            targets=[IDTaxa_holdout3_target],
+            name="Benchmarking IDTaxa on holdout3"
                     
         )
 
