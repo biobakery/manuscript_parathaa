@@ -359,19 +359,19 @@ workflow.add_task(
 #download pre-computed Databases
 
 workflow.add_task(
-    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V1V2.tar.gz -P input/; tar -xf input/SILVA_V1V2.tar.gz -C input/; rm input/SILVA_V1V2.tar.gz",
+    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V1V2_May25.tar.gz -O input/SILVA_V1V2.tar.gz; tar -xf input/SILVA_V1V2.tar.gz -C input/; rm input/SILVA_V1V2.tar.gz",
     targets=V1V2_db,
     name="download pre-computed V1V2 database"
 )
 
 workflow.add_task(
-    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V4V5.tar.gz -P input/; tar -xf input/SILVA_V4V5.tar.gz -C input/; rm input/SILVA_V4V5.tar.gz",
+    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V4V5.tar.gz -O input/SILVA_V4V5.tar.gz; tar -xf input/SILVA_V4V5.tar.gz -C input/; rm input/SILVA_V4V5.tar.gz",
     targets=V4V5_db,
     name="download pre-computed V4V5 database"
 )
 
 workflow.add_task(
-    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_FL.tar.gz -P input/; tar -xf input/SILVA_FL.tar.gz -C input/; rm input/SILVA_FL.tar.gz",
+    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_FL_May25.tar.gz -O input/SILVA_FL.tar.gz; tar -xf input/SILVA_FL.tar.gz -C input/; rm input/SILVA_FL.tar.gz",
     targets=FL_db,
     name="download pre-computed full length database"
 )
