@@ -1,0 +1,139 @@
+---
+title: "Historic_comparison GTB R220 v R214"
+author: "Jacob T. Nearing Ph.D."
+date: "2025-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+setwd("~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/GTDB_testing/")
+
+library(dplyr)
+library(seqinr)
+
+library(ggplot2)
+```
+
+
+# Load in taxonomy files
+```{r}
+R220_taxonomy <- read.table("V220/bac120_ar53_taxonomy_parathaa_format.txt", sep="\t", header=T)
+R202_taxonomy <- read.table("V202/bac120_ar122_taxonomt_r202_parathaa_format.tsv", sep="\t", header=T)
+```
+
+# Load in ssu files
+```{r}
+R220_ssu <- read.fasta("V220/SILVA_seed_alignment/bac120_ar53_r220_filt_1400_no_ambig_test.fna")
+
+R202_ssu <- read.fasta("V202/SILVA_seed_alignment/bac120_ar122_ssu_R202_1400_no_ambig_fixed.fna")
+```
+
+
+# Check set difference
+
+```{r}
+
+R220_taxonomy_filt <- R220_taxonomy %>% filter(primaryAccession %in% names(R220_ssu))
+dim(R220_taxonomy_filt)
+
+R202_taxonomy_filt <- R202_taxonomy %>% filter(primaryAccession %in% names(R202_ssu))
+dim(R202_taxonomy_filt)
+
+
+## okay grab the set difference
+
+New_R220 <- R220_taxonomy_filt %>% filter(!primaryAccession %in% R202_taxonomy_filt$primaryAccession)
+dim(New_R220)
+#19k sequences new to R220 from R202
+
+## how much do they agree
+Overlapped_ids <- intersect(R220_taxonomy_filt$primaryAccession, R202_taxonomy_filt$primaryAccession)
+
+Overlapped_R220 <- R220_taxonomy_filt %>% filter(primaryAccession %in% Overlapped_ids) %>% arrange(primaryAccession)
+Overlapped_R202 <- R202_taxonomy_filt %>% filter(primaryAccession %in% Overlapped_ids) %>% arrange(primaryAccession)
+dim(Overlapped_R202)
+
+#many changed taxonomy some stayed the same though...
+length(which(Overlapped_R220$path != Overlapped_R202$path))
+
+length(which(Overlapped_R220$primaryAccession != Overlapped_R202$primaryAccession))
+
+
+
+
+New_R220 <- New_R220 %>% tidyr::separate(col=path, into=c("Domian","Phylum","Class", "Order", "Family", "Genus", "Species"), sep="\\|", remove=F)
+
+R202_taxonomy_filt <- R202_taxonomy_filt %>% tidyr::separate(col=path, into=c("Domian","Phylum","Class", "Order", "Family", "Genus", "Species"), sep="\\|", remove = F)
+
+keep_taxa <- table(New_R220$Phylum) %>% sort() %>% tail(n=7) %>% names()
+
+New_R220$Phylum_keep <- ifelse(New_R220$Phylum %in% keep_taxa, New_R220$Phylum, "Other")
+
+New_R220 %>% ggplot(aes(x="", fill=Phylum_keep)) + geom_bar(stat="count", width=1) + coord_polar("y", start=0) +
+  theme_void()
+
+##okay that looks good
+#find new sequences in R220 that are from  species that are found in R202
+new_species <- ifelse(New_R220$Species %in% R202_taxonomy_filt$Species, "No", "Yes")
+table(new_species)
+
+#there are 1783 sequences that are not from new species
+New_R220_has_species <- New_R220 %>% filter(Species %in% R202_taxonomy_filt$Species)
+
+
+New_R220_has_species %>% ggplot(aes(x="", fill=Phylum_keep)) + geom_bar(stat="count", width=1) + 
+  coord_polar("y", start=0) +
+  theme_void() +
+  scale_fill_brewer(palette="Set2")
+
+### check if their paths are all contained with R220
+length(which(New_R220_has_species$path %in% R220_taxonomy_filt$path))
+dim(New_R220_has_species)
+#okay they are all there 
+
+# lets now pull out the sequences and see how similar they are
+R220_new_has_species_seq <- R220_ssu[names(R220_ssu) %in% New_R220_has_species$primaryAccession]
+length(R220_new_has_species_seq)
+
+
+## do BLAST to figure out how similar they are to the current sequences in R214
+```
+
+## how many of them match exactly to a sequence already in the database
+
+```{r}
+#pull out the new sequences
+R22_test_seqs <- unlist(seqinr::getSequence(R220_new_has_species_seq, as.string = T))
+names(R22_test_seqs) <- names(R220_new_has_species_seq)
+
+#pull all sequences in R202 to match against
+R202_seqs <- unlist(seqinr::getSequence(R202_ssu, as.string = T))
+
+#find seqwuences in R22 new that are not in all of R202
+different_seqs <- dplyr::setdiff(R22_test_seqs, R202_seqs)
+length(different_seqs)
+
+#so there are 1751 sequences that are new but have the same species as found in R220 this seems reasonable to test
+
+##could do a global alignment but I am lazy...
+different_seqs_named <- R22_test_seqs[R22_test_seqs %in% different_seqs]
+
+new_non_identical_seqs <- names(different_seqs_named)
+```
+
+
+```{r}
+
+R220_taxonomy_filt_new_non_ID <- New_R220 %>% filter(primaryAccession %in% new_non_identical_seqs)
+
+
+R220_taxonomy_filt_new_non_ID %>% ggplot(aes(x=Phylum)) + geom_bar(stat="count") + theme_bw() +
+  theme(axis.text.x=element_text(angle=90)) +
+  ggtitle("New R220 sequences that have species within R202 and are non-identical sequences")
+
+R220_bench_seqs <- R220_ssu[names(R220_ssu) %in% new_non_identical_seqs]
+
+write.fasta(R220_bench_seqs, file.out = "V202_V220_comp/novel_seqs_to_bench.fasta", names = names(R220_new_has_species_seq))
+```

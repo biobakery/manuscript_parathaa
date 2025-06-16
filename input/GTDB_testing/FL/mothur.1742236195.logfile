@@ -1,0 +1,61 @@
+Linux version
+
+Using ReadLine,Boost,HDF5,GSL
+mothur v.1.48.0
+Last updated: 5/20/22
+by
+Patrick D. Schloss
+
+Department of Microbiology & Immunology
+
+University of Michigan
+http://www.mothur.org
+
+When using, please cite:
+Schloss, P.D., et al., Introducing mothur: Open-source, platform-independent, community-supported software for describing and comparing microbial communities. Appl Environ Microbiol, 2009. 75(23):7537-41.
+
+Distributed under the GNU General Public License
+
+Type 'help()' for information on the commands that are available
+
+For questions and analysis support, please visit our forum at https://forum.mothur.org
+
+Type 'quit()' to exit program
+
+[NOTE]: Setting random seed to 19760620.
+
+Script Mode
+
+
+
+mothur > set.dir(output=V202_bench_assignments)
+Mothur's directories:
+outputDir=V202_bench_assignments/
+
+mothur > set.dir(debug=V202_bench_assignments)
+
+mothur > align.seqs(candidate=/n/holystore01/LABS/huttenhower_lab/Users/jnearing/Parathaa/GTDB_testing/V202_V220_comp/FL/novel_seqs_to_bench.fasta, template=/n/holystore01/LABS/huttenhower_lab/Users/jnearing/Parathaa/GTDB_testing/V202/Parathaa_FL/bac120_ar122_ssu_R202_1400_no_ambig.pcr.align, processors=20)
+
+Using 20 processors.
+
+Reading in the /n/holystore01/LABS/huttenhower_lab/Users/jnearing/Parathaa/GTDB_testing/V202/Parathaa_FL/bac120_ar122_ssu_R202_1400_no_ambig.pcr.align template sequences...	DONE.
+It took 14 to read  24102 sequences.
+
+Aligning sequences from /n/holystore01/LABS/huttenhower_lab/Users/jnearing/Parathaa/GTDB_testing/V202_V220_comp/FL/novel_seqs_to_bench.fasta ...
+It took 3 secs to align 1783 sequences.
+
+
+It took 3 seconds to align 1783 sequences.
+
+Output File Names: 
+V202_bench_assignments/novel_seqs_to_bench.align
+V202_bench_assignments/novel_seqs_to_bench.align_report
+
+
+mothur > quit()
+
+
+It took 20 seconds to run 4 commands from your script.
+
+Logfile : mothur.1742236195.logfile
+

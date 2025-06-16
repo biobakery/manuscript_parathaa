@@ -1,0 +1,58 @@
+Linux version
+
+Using ReadLine,Boost,HDF5,GSL
+mothur v.1.48.0
+Last updated: 5/20/22
+by
+Patrick D. Schloss
+
+Department of Microbiology & Immunology
+
+University of Michigan
+http://www.mothur.org
+
+When using, please cite:
+Schloss, P.D., et al., Introducing mothur: Open-source, platform-independent, community-supported software for describing and comparing microbial communities. Appl Environ Microbiol, 2009. 75(23):7537-41.
+
+Distributed under the GNU General Public License
+
+Type 'help()' for information on the commands that are available
+
+For questions and analysis support, please visit our forum at https://forum.mothur.org
+
+Type 'quit()' to exit program
+
+[NOTE]: Setting random seed to 19760620.
+
+Interactive Mode
+
+
+
+mothur > pcr.seqs(fasta=novel_seqs_to_bench.fasta, oligos=~/links/jnearing/Parathaa/Parathaa_Release/parathaa/input/primers/V4V5.oligos, pdiffs=3, rdiffs=3, keepdots=t, checkorient=false)
+
+Using 48 processors.
+It took 0 secs to screen 1783 sequences.
+
+Output File Names: 
+novel_seqs_to_bench.pcr.fasta
+novel_seqs_to_bench.bad.accnos
+novel_seqs_to_bench.scrap.pcr.fasta
+
+
+
+mothur > exit()
+[ERROR]: Invalid command.
+[ERROR]: did not complete exit.
+
+mothur > quit()
+Logfile : mothur.1741984901.logfile
+
+
+
+************************************************************
+************************************************************
+************************************************************
+Detected 2 [ERROR] messages, please review.
+************************************************************
+************************************************************
+************************************************************
