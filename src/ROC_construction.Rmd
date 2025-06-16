@@ -1,0 +1,434 @@
+---
+title: "ROC_analysis_Parathaa"
+author: "Jacob T. Nearing Ph.D."
+date: "2025-04-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+setwd("~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/ROC_construction/")
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(seqinr)
+
+source("~/Dropbox_Harvard/hutlab/Jacob/GitHub/parathaa/parathaa/utility/SILVA.species.editor.dev.R")
+source("~/Dropbox_Harvard/hutlab/Jacob/GitHub/manuscript_parathaa/src/performance.table.R")
+```
+
+# Load in ground truth
+
+```{r}
+
+taxdata <- read.table("taxmap_slv_ssu_ref_138.1.txt" , header=T, fill=TRUE,sep='\t', quote="")
+
+
+taxdata <- taxdata %>%
+      unite("AccID", c("primaryAccession", "start", "stop"), sep=".", remove=F)
+
+taxdata <- taxdata %>%
+      mutate(taxonomy=paste0(path, organism_name))
+    
+#remove Eukaryota Kingdom as they have taxonomy that we are not handling here.
+taxdata <- taxdata %>% filter(!grepl("^Eukaryota;", path))
+    
+taxdata <- taxdata %>%
+      select(AccID, primaryAccession, start, stop, taxonomy) %>%
+      separate(col=taxonomy, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep=";", fill="right")
+    
+## Fix up remaining silva taxonomy by removing sub species and 'uncultured' species
+taxdata <- SILVA.species.editor(taxdata)
+
+#calculate the performance of each one
+SeedTax <- read.table("silva.seed_v138_1.tax" , header=F, fill=TRUE,sep='\t')
+
+SeedTax <- SeedTax %>%
+      separate(col=V1, into=c("primaryAccession", "ArbID"), sep="\\.") %>%
+      separate(col=V2, into=c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), sep=";", extra="drop") %>%
+      filter(Kingdom=="Bacteria" & !is.na(Genus) & Genus!="") 
+
+taxdata_seed <- taxdata %>% filter(primaryAccession %in% SeedTax$primaryAccession)
+
+taxdata_SP <- word(taxdata_seed$Species, 1, 2)
+
+
+##list of species in the seed database
+taxdata_SP <- taxdata_SP[-which(is.na(taxdata_SP))]
+```
+
+# Load Parathaa and get stats
+
+```{r}
+matched_files <- list.files(
+  path = ".",                      # Starting directory (current directory)
+  pattern = "^taxonomic_assignments.tsv$",  # File name pattern
+  recursive = TRUE,               # Search through subdirectories
+  full.names = TRUE               # Return full path names
+)
+
+
+
+V1V2_classifications <- matched_files[grepl("multi_.*\\/V1V2\\/taxonomic_assignments.tsv", matched_files)]
+V4V5_classifications <- matched_files[grepl("multi_.*\\/V4V5\\/taxonomic_assignments.tsv", matched_files)]
+FL_classifications <- matched_files[grepl("multi_.*\\/FL\\/taxonomic_assignments.tsv",matched_files)]
+```
+
+
+```{r}
+bench_parathaa_assignments <- function(assignment_file, sequenceFile){
+  
+  res_list <- list()
+  tax_table <- read.table(assignment_file, sep="\t",header=T)
+  colnames(tax_table)[1] <- "AccID"
+  
+  
+  
+  hierarchy <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+  tax_table <- tax_table %>% mutate_at(vars(hierarchy), ~ str_replace(., "\\b\\w+ Unclassified", ""))
+  ##then if we have blank string we replace with NA
+  tax_table <- tax_table %>% mutate_at(vars(hierarchy), ~ na_if(., ""))
+  ## replace any that are just ;
+  tax_table <- tax_table %>% mutate_at(vars(hierarchy), ~ str_replace(., "^;+$", "")) 
+  
+  #load in query file
+  getNames <- read.fasta(file(sequenceFile), as.string = TRUE,
+                         forceDNAtolower = FALSE, whole.header = FALSE)
+  #get the names and split it by (tab as we only want to keep the accession ID)
+  names1 <- str_split(getName(getNames), "\t", simplify=TRUE)
+  #remove > in fasta headers if they exist
+  names1 <- names1[,1] %>%
+    str_remove(">")
+  #create data frame with sequence and ID
+  name.df <- data.frame("sequence" = unlist(getSequence(getNames, as.string=T)), AccID = names1)
+  
+  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H|V")) %>% pull(AccID)
+  
+  
+  #add taxonomy
+  merged_res <- left_join(name.df, taxdata, by="AccID")  
+  
+  # add parathaa assignments
+  merged_res <- left_join(merged_res, tax_table, by="AccID")
+  
+  
+  colnames(merged_res) <- gsub("\\.y", "_Assignment", colnames(merged_res))
+  colnames(merged_res) <- gsub("\\.x", "", colnames(merged_res))
+  
+  merged_res <- merged_res %>% 
+    mutate(Species_Assignment = unlist(lapply(str_split(Species_Assignment, ";"), FUN=function(x) paste0(word(x,1,2), collapse = ";" ))))
+  
+  merged_res <- merged_res %>%
+    mutate(Species_Assignment=ifelse(Species_Assignment=="NA", NA, Species_Assignment))
+  
+  merged_res <- merged_res %>% mutate(Species=word(Species, 1,2)) 
+  
+  merged_res <- merged_res %>% 
+    dplyr::rowwise() %>%
+    mutate(Flag = ifelse(is.na(Species_Assignment), NA, word(Species, 1, 2) 
+                         %in% str_split(Species_Assignment, ";", simplify = T)))
+  
+  merged_res <- merged_res %>% filter(!AccID %in% nChars2)
+  
+  
+  res_list[["original"]] <- performance_single_run(merged_res, "Species")
+  
+  
+  ## adjusted
+  merged_res <- merged_res %>% mutate(seed_species=Species %in% taxdata_SP)
+  merged_res <- merged_res %>% mutate(Flag_cor=ifelse(is.na(Flag) & !seed_species, TRUE, Flag))
+  merged_res$Flag <- merged_res$Flag_cor
+
+  res_list[["adjusted"]] <- performance_single_run(merged_res, "Species")
+
+  return(res_list)  
+}
+
+```
+
+
+```{r}
+V1V2_performance <- list()
+
+for(i in V1V2_classifications){
+  mult_val <- strsplit(i, split="/")[[1]][2]
+
+  V1V2_performance[[mult_val]] <- bench_parathaa_assignments(i, 
+                                                             sequenceFile = "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/V1V2_holdout1.pcr.fasta")  
+}
+
+
+V4V5_performance <- list()
+for(i in V4V5_classifications){
+    mult_val <- strsplit(i, split="/")[[1]][2]
+
+  V4V5_performance[[mult_val]] <- bench_parathaa_assignments(i, sequenceFile = "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/V4V5_holdout1.pcr.fasta")  
+  
+}
+
+FL_performance <- list()
+for(i in FL_classifications){
+  mult_val <- strsplit(i, split="/")[[1]][2]
+
+  FL_performance[[mult_val]] <- bench_parathaa_assignments(i, sequenceFile = "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/FL_holdout1_filt.fasta")
+}
+
+
+```
+
+# Plot Parathaa performance
+```{r}
+##plot adjusted results
+
+V1V2_adjusted_precision <- unlist(lapply(V1V2_performance, function(x) x$adjusted[2]))
+V1V2_adjusted_recall <- unlist(lapply(V1V2_performance, function(x) x$adjusted[3]))
+
+V1V2_correct <- unlist(lapply(V1V2_performance, function(x) x$adjusted[5] + x$adjusted[6] + x$adjusted[8]))
+V1V2_correct
+
+V1V2_incorrect <- unlist(lapply(V1V2_performance, function(x) x$adjusted[7] + x$adjusted[9]))
+V1V2_incorrect
+
+
+V1V2_adjusted_ROC_data <- data.frame(recall=V1V2_adjusted_recall,
+                                     precision=V1V2_adjusted_precision)
+
+
+V1V2_adjusted_ROC_data %>% ggplot(aes(x=recall, y=precision)) + geom_point(size=3) +
+  theme_bw()
+
+
+V4V5_adjusted_precision <- unlist(lapply(V4V5_performance, function(x) x$adjusted[2]))
+V4V5_adjusted_recall <- unlist(lapply(V4V5_performance, function(x) x$adjusted[3]))
+
+V4V5_correct <- unlist(lapply(V4V5_performance, function(x) x$adjusted[5] + x$adjusted[6] + x$adjusted[8]))
+V4V5_correct
+
+V4V5_incorrect <- unlist(lapply(V4V5_performance, function(x) x$adjusted[7] + x$adjusted[9]))
+V4V5_incorrect
+
+V4V5_adjusted_ROC_data <- data.frame(recall=V4V5_adjusted_recall,
+                                     precision=V4V5_adjusted_precision)
+
+
+V4V5_adjusted_ROC_data %>% ggplot(aes(x=recall, y=precision)) + geom_point(size=3) +
+  theme_bw()
+
+
+FL_adjusted_precision <- unlist(lapply(FL_performance, function(x) x$adjusted[2]))
+FL_adjusted_recall <- unlist(lapply(FL_performance, function(x) x$adjusted[3]))
+
+FL_correct <- unlist(lapply(FL_performance, function(x) x$adjusted[5] + x$adjusted[6] + x$adjusted[8]))
+FL_correct
+
+FL_incorrect <- unlist(lapply(FL_performance, function(x) x$adjusted[7] + x$adjusted[9]))
+FL_incorrect
+
+FL_adjusted_ROC_data <- data.frame(recall=FL_adjusted_recall,
+                                     precision=FL_adjusted_precision)
+
+
+FL_adjusted_ROC_data %>% ggplot(aes(x=recall, y=precision)) + geom_point(size=3) +
+  theme_bw()
+
+
+```
+
+
+# Load DADA2 and get stats
+```{r}
+V1V2_dada2 <- readRDS("~/Desktop/V1V2_dada2_class_boot0.RDS")
+V4V5_dada2 <- readRDS("~/Desktop/V4V5_dada2_class_boot0.RDS")
+FL_dada2 <- readRDS("~/Desktop/FL_dada2_class_boot0.RDS")
+```
+
+
+```{r}
+bench_dada2_assignments <- function(tax_assign, sequenceFile){
+  
+  res_list <- list()
+  dada2_assignments <- data.frame(tax_assign$tax)
+  dada2_boots <- data.frame(tax_assign$boot)
+  
+  boots_to_test <- seq(from=0, to=100, by=3)
+
+  for(i in boots_to_test){
+    speces_to_remove <- which(dada2_boots$Species < i)
+    if(length(speces_to_remove!=0)){
+      ## remove dada2_assignments
+      dada2_assignments$Species[speces_to_remove] <- NA
+    }
+  
+  temp_res <- list()
+  ##okay now we just do the normal thing
+  dada2_assignments$AccID <- tax_assign$names
+  
+    #load in query file
+  getNames <- read.fasta(file(sequenceFile), as.string = TRUE,
+                         forceDNAtolower = FALSE, whole.header = FALSE)
+  #get the names and split it by (tab as we only want to keep the accession ID)
+  names1 <- str_split(getName(getNames), "\t", simplify=TRUE)
+  #remove > in fasta headers if they exist
+  names1 <- names1[,1] %>%
+    str_remove(">")
+  #create data frame with sequence and ID
+  name.df <- data.frame("sequence" = unlist(getSequence(getNames, as.string=T)), AccID = names1)
+  
+  nChars2 <- name.df %>% filter(str_detect(sequence, "N|M|R|K|Y|S|W|D|B|H|V")) %>% pull(AccID)
+  
+  
+  merged_res <- left_join(name.df, taxdata, by="AccID")  
+
+  merged_res <- left_join(merged_res, dada2_assignments, by="AccID")
+  
+  
+  colnames(merged_res) <- gsub("\\.y", "_Assignment", colnames(merged_res))
+  colnames(merged_res) <- gsub("\\.x", "", colnames(merged_res))
+  
+  merged_res <- merged_res %>% mutate(Species=word(Species, 1,2)) 
+  merged_res <- merged_res %>% mutate(Species_Assignment=word(Species_Assignment, 1,2))
+  
+  
+  merged_res <- merged_res %>% 
+    rowwise() %>%
+    mutate(Flag=ifelse(is.na(Species_Assignment), NA, word(Species, 1, 2) %in% 
+                         str_split(Species_Assignment, ";", simplify = T)))
+  
+  temp_res[["original"]] <- performance_single_run(merged_res, "Species")
+  
+  
+  ## adjusted
+  merged_res <- merged_res %>% mutate(seed_species=Species %in% taxdata_SP)
+  merged_res <- merged_res %>% mutate(Flag_cor=ifelse(is.na(Flag) & !seed_species, TRUE, Flag))
+  merged_res$Flag <- merged_res$Flag_cor
+
+  temp_res[["adjusted"]] <- performance_single_run(merged_res, "Species")
+  
+  res_list[[as.character(i)]] <- temp_res
+  }
+  return(res_list)
+}
+
+```
+
+```{r}
+V1V2_performance_dada2 <- bench_dada2_assignments(V1V2_dada2, sequenceFile = "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/V1V2_holdout1.pcr.fasta")
+
+V4V5_performance_dada2 <- bench_dada2_assignments(V4V5_dada2, sequenceFile = "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/V4V5_holdout1.pcr.fasta")
+
+FL_performance_dada2 <- bench_dada2_assignments(FL_dada2, sequenceFile="~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/FL_holdout1_filt.fasta")
+
+```
+
+
+# Plot out dada2 vs. Parathaa stats
+
+
+```{r}
+
+
+cols <- c("Parathaa" = "#FA8072", 
+          "Naive Bayes EM"="#143d59",
+          "Naive Bayes Multi-EM"="#1e1eff",
+          "Naive Bayes"="#47008e")
+
+V1V2_adjusted_precision_dada2 <- lapply(V1V2_performance_dada2, function(x) x$adjusted[2])
+V1V2_adjusted_recall_dada2 <- lapply(V1V2_performance_dada2, function(x) x$adjusted[3])
+
+V4V5_adjusted_precision_dada2 <- lapply(V4V5_performance_dada2, function(x) x$adjusted[2])
+V4V5_adjusted_recall_dada2 <- lapply(V4V5_performance_dada2, function(x) x$adjusted[3])
+  
+FL_adjusted_precision_dada2 <- lapply(FL_performance_dada2, function(x) x$adjusted[2])
+FL_adjusted_recall_dada2 <- lapply(FL_performance_dada2, function(x) x$adjusted[3])
+
+V1V2_adjusted_ROC_data <- data.frame(recall=V1V2_adjusted_recall,
+                                     precision=V1V2_adjusted_precision, 
+                                     Method="Parathaa")
+
+V1V2_adjusted_ROC_data_dada2 <- data.frame(recall=unlist(V1V2_adjusted_recall_dada2),
+                                     precision=unlist(V1V2_adjusted_precision_dada2), 
+                                     Method="Naive Bayes")
+
+
+### Add in the exact species matching here
+exact_spec_mult <- data.frame(recall=0.497,
+                         precision=0.944,
+                         Method="Naive Bayes Multi-EM")
+
+exact_spec <- data.frame(recall=0.476,
+                         precision=0.959,
+                         Method="Naive Bayes EM")
+
+
+V1V2_performance <- rbind(V1V2_adjusted_ROC_data, V1V2_adjusted_ROC_data_dada2, exact_spec, exact_spec_mult)
+
+V1V2_p <- V1V2_performance %>% ggplot(aes(x=recall, y=precision, color=Method)) + geom_point(size=3, alpha=.5) +
+  theme_bw() + ggtitle("V1V2") +
+  scale_color_manual(values=cols)
+
+V1V2_p
+
+V4V5_adjusted_ROC_data <- data.frame(recall=V4V5_adjusted_recall,
+                                     precision=V4V5_adjusted_precision, 
+                                     Method="Parathaa")
+
+V4V5_adjusted_ROC_data_dada2 <- data.frame(recall=unlist(V4V5_adjusted_recall_dada2),
+                                     precision=unlist(V4V5_adjusted_precision_dada2), 
+                                     Method="Naive Bayes")
+
+exact_spec_mult <- data.frame(recall=0.811,
+                         precision=0.891,
+                         Method="Naive Bayes Multi-EM")
+
+
+exact_spec <- data.frame(recall=0.610,
+                         precision=0.925,
+                         Method="Naive Bayes EM")
+
+V4V5_performance <- rbind(V4V5_adjusted_ROC_data, V4V5_adjusted_ROC_data_dada2, exact_spec, exact_spec_mult)
+
+
+
+V4V5_p <- V4V5_performance %>% ggplot(aes(x=recall, y=precision, color=Method)) + geom_point(size=3, alpha=.5) +
+  theme_bw() + ggtitle("V4V5") + 
+  scale_color_manual(values=cols)
+
+V4V5_p
+
+
+exact_spec_multi <- data.frame(recall=0.447,
+                         precision=0.99,
+                         Method="Naive Bayes Multi-EM")
+
+exact_spec <- data.frame(recall=0.446,
+                         precision=0.991,
+                         Method="Naive Bayes EM")
+
+FL_adjusted_ROC_data <- data.frame(recall=FL_adjusted_recall,
+                                     precision=FL_adjusted_precision,
+                                     Method="Parathaa")
+
+FL_adjusted_ROC_data_dada2 <- data.frame(recall=unlist(FL_adjusted_recall_dada2),
+                                     precision=unlist(FL_adjusted_precision_dada2),
+                                     Method="Naive Bayes")
+
+FL_performance <- rbind(FL_adjusted_ROC_data, FL_adjusted_ROC_data_dada2, exact_spec, exact_spec_multi)
+
+FL_p <- FL_performance %>% ggplot(aes(x=recall, y=precision, color=Method)) + geom_point(size=3, alpha=.5) +
+  theme_bw() + ggtitle("Full") +
+  scale_color_manual(values=cols)
+
+FL_p
+
+
+library(patchwork)
+
+FL_p + V1V2_p + V4V5_p + plot_layout(guides="collect")
+
+ggsave("~/Dropbox_Harvard/hutlab/Jacob/Paper_Submissions/Parathaa/NAR/Figures/Figure2/PR_curves.pdf", width=8, height=2.5)
+```
+
+
+
