@@ -376,6 +376,28 @@ workflow.add_task(
     name="download pre-computed full length database"
 )
 
+#download GTDB databases
+
+workflow.add_task(
+        "wget http://huttenhower.sph.harvard.edu/parathaa_db/GTDBv202_FL.tar.gz -P input/GTDB_testing/; tar -xf input/GTDB_testing/GTDBv202_FL.tar.gz -C input/GTDB_testing/; rm input/GTDB_testing/GTDBv202_FL.tar.gz",
+        targets=GTDB_parathaa_DB_FL,
+        name="download pre-computed v202 GTDB FL benchmark DB"
+)
+
+workflow.add_task(
+        "wget http://huttenhower.sph.harvard.edu/parathaa_db/GTDBv202_V1V2.tar.gz -P input/GTDB_testing/; tar -xf input/GTDB_testing/GTDBv202_V1V2.tar.gz -C input/GTDB_testing/; rm input/GTDB_testing/GTDBv202_V1V2.tar.gz",
+        targets=GTDB_parathaa_DB_V1V2,
+        name="download pre-computed v202 GTDB V1V2 benchmark DB"
+)
+
+workflow.add_task(
+        "wget http://huttenhower.sph.harvard.edu/parathaa_db/GTDBv202_V4V5.tar.gz -P input/GTDB_testing/; tar -xf input/GTDB_testing/GTDBv202_V4V5.tar.gz -C input/GTDB_testing/; rm input/GTDB_testing/GTDBv202_V4V5.tar.gz",
+        targets=GTDB_parathaa_DB_V4V5,
+        name="download pre-computed v202 GTDB V4V5 benchmark DB"
+)
+
+
+
 #Generate DADA2 files
 
 workflow.add_task(
