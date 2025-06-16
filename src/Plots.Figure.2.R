@@ -42,8 +42,8 @@ source_url("https://raw.githubusercontent.com/lrjoshi/FastaTabular/master/fasta_
 
 
 ### DADA2 db ###
-#DADAdb <- "~/Repos/Hills_Project/Parathaa_Project/Benchmarking/Output_Jun_6/input/20231215.silva.seed_v138_1.ng.dada.fasta"
-#DADAdb.sp <- "~/Repos/Hills_Project/Parathaa_Project/Benchmarking/Output_Jun_6/input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
+DADAdb <- "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/20231215.silva.seed_v138_1.ng.dada.fasta"
+DADAdb.sp <- "~/Dropbox_Harvard/hutlab/Jacob/Repos/Hills_Project/Parathaa_Project/August_15_results/input/20231215_silva.seed_v138_1.ng.dada.sp.fasta"
 DADAdb <- opts$dada_db
 DADAdb.sp <- opts$dada_db_sp
 
@@ -83,8 +83,8 @@ taxaV4V5 <- taxaV4V5[-nChars,]
 taxaV4V5.0 <- taxaV4V5[1:21000,]
 taxaV4V5.1 <- taxaV4V5[21001:nrow(taxaV4V5),]
 
-taxaV4V5.0.sp <- addSpecies(taxaV4V5.0, DADAdb.sp)
-taxaV4V5.1.sp <- addSpecies(taxaV4V5.1, DADAdb.sp)
+taxaV4V5.0.sp <- addSpecies(taxaV4V5.0, DADAdb.sp, allowMultiple = TRUE)
+taxaV4V5.1.sp <- addSpecies(taxaV4V5.1, DADAdb.sp, allowMultiple=TRUE)
 
 taxaV4V5.sp <- rbind(taxaV4V5.0.sp, taxaV4V5.1.sp)
 
@@ -152,16 +152,16 @@ taxav1v2.dedup.8 <- taxaV1V2.dedup[80001:90000,]
 taxav1v2.dedup.9 <- taxaV1V2.dedup[90001:nrow(taxaV1V2.dedup),]
 
 
-taxaV1V2.0.sp <- addSpecies(taxav1v2.dedup.0, DADAdb.sp)
-taxaV1V2.1.sp <- addSpecies(taxav1v2.dedup.1, DADAdb.sp)
-taxaV1V2.2.sp <- addSpecies(taxav1v2.dedup.2, DADAdb.sp)
-taxaV1V2.3.sp <- addSpecies(taxav1v2.dedup.3, DADAdb.sp)
-taxaV1V2.4.sp <- addSpecies(taxav1v2.dedup.4, DADAdb.sp)
-taxaV1V2.5.sp <- addSpecies(taxav1v2.dedup.5, DADAdb.sp)
-taxaV1V2.6.sp <- addSpecies(taxav1v2.dedup.6, DADAdb.sp)
-taxaV1V2.7.sp <- addSpecies(taxav1v2.dedup.7, DADAdb.sp)
-taxaV1V2.8.sp <- addSpecies(taxav1v2.dedup.8, DADAdb.sp)
-taxaV1V2.9.sp <- addSpecies(taxav1v2.dedup.9, DADAdb.sp)
+taxaV1V2.0.sp <- addSpecies(taxav1v2.dedup.0, DADAdb.sp, allowMultiple = T)
+taxaV1V2.1.sp <- addSpecies(taxav1v2.dedup.1, DADAdb.sp, allowMultiple = T)
+taxaV1V2.2.sp <- addSpecies(taxav1v2.dedup.2, DADAdb.sp, allowMultiple = T)
+taxaV1V2.3.sp <- addSpecies(taxav1v2.dedup.3, DADAdb.sp, allowMultiple = T)
+taxaV1V2.4.sp <- addSpecies(taxav1v2.dedup.4, DADAdb.sp, allowMultiple = T)
+taxaV1V2.5.sp <- addSpecies(taxav1v2.dedup.5, DADAdb.sp, allowMultiple = T)
+taxaV1V2.6.sp <- addSpecies(taxav1v2.dedup.6, DADAdb.sp, allowMultiple = T)
+taxaV1V2.7.sp <- addSpecies(taxav1v2.dedup.7, DADAdb.sp, allowMultiple = T)
+taxaV1V2.8.sp <- addSpecies(taxav1v2.dedup.8, DADAdb.sp, allowMultiple = T)
+taxaV1V2.9.sp <- addSpecies(taxav1v2.dedup.9, DADAdb.sp, allowMultiple = T)
 
 
 taxaV1V2.sp <- rbind(taxaV1V2.0.sp, taxaV1V2.1.sp, taxaV1V2.2.sp,
@@ -449,9 +449,9 @@ for(level in c("Genus","Species")){
   #xlabs[ceiling(nrow(sample_data(ps1.com.rel.lev.agg))/4)] <- "DADA2"
   #xlabs[ceiling(nrow(sample_data(ps1.com.rel.lev.agg))*3/4)+1] <- "parathaa"
   if(level=="Genus" | includeSpingo==F)
-    xlabs <- c("DADA2 V1V2", "Parathaa V1V2", "DADA2 V4V5", "Parathaa V4V5")
+    xlabs <- c("Naïve Bayes Multi-EM V1V2", "Parathaa V1V2", "Naïve Bayes Multi-EM V4V5", "Parathaa V4V5")
   if(level=="Species" & includeSpingo==T)
-    xlabs <- c("DADA2 V1V2", "Parathaa V1V2", "SPINGO V1V2", "DADA2 V4V5", "Parathaa V4V5", "SPINGO V4V5") # for mock
+    xlabs <- c("Naïve Bayes Multi-EM V1V2", "Parathaa V1V2", "SPINGO V1V2", "Naïve Bayes V4V5", "Parathaa V4V5", "SPINGO V4V5") # for mock
   plot.composition.relAbun <- plot.composition.relAbun + theme(legend.position = "bottom") 
   plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Other")
   plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
@@ -466,30 +466,39 @@ for(level in c("Genus","Species")){
                title.theme = element_text(size=18),
                )
            )
-  plot.composition.relAbun <- plot.composition.relAbun +   theme(axis.text.x = element_text(size=12, angle=45, hjust=1)) + scale_x_discrete(labels=xlabs) 
+  plot.composition.relAbun <- plot.composition.relAbun +   theme(axis.text.x = element_text(size=12, angle=60, hjust=1)) + scale_x_discrete(labels=xlabs) 
 
-  if(level!="Species")
+  if(level!="Species"){
     ggsave(filename=paste0(opts$o, "/Figures/", level, "mock_taxonomy.png"), plot.composition.relAbun, width=6, height=6)
-  if(level=="Species")
+    ggsave(filename=paste0(opts$o, "/Figures/", level, "mock_taxonomy.pdf"), plot.composition.relAbun, width=6, height=6)
+  }
+  if(level=="Species"){
     ggsave(filename=paste0(opts$o, "/Figures/", level, "mock_taxonomy.png"), plot.composition.relAbun, width=10, height=6)
-  
+    ggsave(filename=paste0(opts$o, "/Figures/", level, "mock_taxonomy.pdf"), plot.composition.relAbun, width=10, height=6)
+    
+  }
   plotList[[level]] <- plot.composition.relAbun
 }
 
 ## Panel Plot ##
 p1 <- ggarrange(plotList[["Genus"]], plotList[["Species"]] , ncol=2, labels = c("B", "C"), align="h", widths=c(1,1.5)) 
-ggsave(filename = paste0(opts$o, "/Figures/", "mock_genus_species_panel.png"), plot= p1, height = 6, width=14, dpi=600)
+ggsave(filename = paste0(opts$o, "/Figures/", "mock_genus_species_panel.pdf"), plot= p1, height = 6, width=16, dpi=600)
 ## Panel Plot ##
 p1 <- ggarrange(plotList[["Species"]], plotList[["Genus"]], ncol=2, labels = c("B", "C"), align="h", widths=c(1.5,1)) 
-ggsave(filename = paste0(opts$o, "/Figures/", "mock_species_genus_panel.png"), plot= p1, height = 6, width=14, dpi=600)
+ggsave(filename = paste0(opts$o, "/Figures/", "mock_species_genus_panel.pdf"), plot= p1, height = 6, width=16, dpi=600)
 
 
 ## Heatmap of mock community
 level <- "Species"
-ps1.com.rel <- microbiome::transform(ps1.com, "compositional")
-ps1.com.rel.lev <- aggregate_rare(ps1.com.rel, level, detection = .1/100, prevalence = 10/100)
-ps1.com.rel.lev.agg <- aggregate_taxa(ps1.com.rel.lev, level)
-forHeat <- t(as.matrix(otu_table(ps1.com.rel.lev.agg)))
+
+#ps1.com.rel <- microbiome::transform(ps1.com.filt, "compositional")
+ps1.com.agg <- aggregate_taxa(ps1.com, level)
+reads_under_30 <- microbiome::rare_members(ps1.com.agg, detection=29, prevalence = 0)
+ps1.com.agg.filt <- remove_taxa(reads_under_30, ps1.com.agg)
+ps1.com.agg.filt.comp <- microbiome::transform(ps1.com.agg.filt, transform = "compositional")
+
+
+forHeat <- t(as.matrix(otu_table(ps1.com.agg.filt.comp)))
 
 if(includeSpingo){
   rownames(forHeat) <- c("V1V2 DADA2", "V4V5 DADA2", 
@@ -499,10 +508,12 @@ if(includeSpingo){
 }
 
 if(includeSpingo==F){
-  rownames(forHeat) <- c("V1V2 DADA2", "V4V5 DADA2", 
+  rownames(forHeat) <- c("V1V2 Naïve Bayes Multi-EM", "V4V5 Naïve Bayes Multi-EM", 
                          "V1V2 Parathaa", "V4V5 Parathaa")
   forHeat <- forHeat[c(1,3,2,4),]
 }
+
+colnames(forHeat)
 
 included <- c("Actinomyces odontolyticus",
               "Bacillus cereus",
@@ -536,7 +547,19 @@ included <- c("Actinomyces odontolyticus",
               "Enterococcus canis;Enterococcus casseliflavus;Enterococcus faecalis;Enterococcus gallinarum;Enterococcus Unclassified;Melissococcus plutonius",
               "Bacillus anthracis;Bacillus cereus;Bacillus phage phBC6A52;Bacillus thuringiensis;Bacillus Unclassified",
               "Bacillus cereus;Bacillus thuringiensis;Bacillus Unclassified;Bacillus wiedmannii",
-              "Streptococcus agalactiae;Streptococcus phage 10750.4")
+              "Streptococcus agalactiae;Streptococcus phage 10750.4",
+              "Escherichia coli;Salmonella enterica;Shigella boydii",
+              "Escherichia coli",
+              "Pseudomonas aeruginosa;Pseudomonas Unclassified",
+              "Bacillus anthracis/cereus/mobilis/mycoides/phage/thuringiensis/wiedmannii",
+              "Bacillus anthracis/cereus/phage/thuringiensis",
+              "Bacillus cereus/thuringiensis/wiedmannii",
+              "Enterococcus canis/faecalis",
+              "Lactobacillus gasseri/johnsonii",
+              "Staphylococcus argenteus/aureus",
+              "Staphylococcus argenteus/aureus/epidermidis/petrasii/warneri",
+              "Listeria innocua/monocytogenes",
+              "Staphylococcus aureus;S. epidermidis")
 others <- c("Ambiguous", "Unknown", "Other")
 included.df <- data.frame(rep("Not included", length(colnames(forHeat))))
 colnames(included.df) <- "Mock Community"
@@ -560,22 +583,21 @@ ra = rowAnnotation(
   annotation_legend_param = list(title = "16S Region"),
   col=list(df = c("V1V2" =  turbo(7)[2],"V4V5" = turbo(7)[4]))
 )
-col_fun <- c("grey", "grey", "grey",   rev(magma(98)))
+col_fun <- c("grey",   rev(magma(98)))
 
-### Anything < 0.1% set to 0
-forHeat <- forHeat*(forHeat>0.001)
-###manually fix heatmap column names...
 
-colnames(forHeat)[1] <- "Bacillus anthracis;B. cereus;B. phage phBC6A52;B. thuringiensis;B. Unclassified"
-colnames(forHeat)[2] <- "Bacillus anthracis;B. cereus;B. thuringiensis" 
-colnames(forHeat)[4] <- "Bacillus cereus;B. thuringiensis;B. Unclassified;B. wiedmannii"
-colnames(forHeat)[7] <- "Enterococcus canis;E. casseliflavus;E. faecalis;E. gallinarum;E. Unclassified;Melissococcus plutonius"
-colnames(forHeat)[9] <- "Lactobacillus gasseri;L. johnsonii"
-colnames(forHeat)[10] <- "Listeria innocua;L. monocytogenes"
-colnames(forHeat)[15] <- "Staphylococcus aureus;S. epidermidis"
-colnames(forHeat)[18] <- "Streptococcus agalactiae;S. phage 10750.4"
+ht1 <- Heatmap(sqrt(as.matrix(forHeat)), name = "sqrt(Rel.\nabundance)", col=col_fun,
+               column_names_max_height = unit(15, "cm"),
+               cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
+               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 7), 
+               column_split = included.df[,"Mock Community"], column_title=NULL, top_annotation = ha,
+               row_split = region.df[,"16S Region"], row_title=NULL, right_annotation = ra,
+               row_names_gp = grid::gpar(fontsize = 10))  %v% NULL
 
-png(paste0(opts$o, "/Fig_2A_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
+draw(ht1)
+
+
+png(paste0(opts$o, "/Sup_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
 ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
                column_names_max_height = unit(15, "cm"),
                cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
@@ -588,3 +610,190 @@ draw(ht1)
 
 dev.off()
 
+pdf(paste0(opts$o, "/Sup_MockHeatmap.pdf"),width=9.5,height=4.5)
+ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
+               column_names_max_height = unit(15, "cm"),
+               cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
+               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 7), 
+               column_split = included.df[,"Mock Community"], column_title=NULL, top_annotation = ha,
+               row_split = region.df[,"16S Region"], row_title=NULL, right_annotation = ra,
+               row_names_gp = grid::gpar(fontsize = 10))  %v% NULL
+
+draw(ht1)
+
+dev.off()
+
+
+### okay now we make the main figure and clean up labels
+colnames(forHeat)
+
+forHeat_format <- forHeat
+Bacillus_Cereus <- c("Bacillus anthracis;Bacillus cereus;Bacillus phage phBC6A52;Bacillus thuringiensis;Bacillus Unclassified",
+                     "Bacillus anthracis;Bacillus cereus;Bacillus thuringiensis",
+                     "Bacillus anthracis/cereus/mobilis/mycoides/phage/thuringiensis/wiedmannii", 
+                     "Bacillus cereus",
+                     "Bacillus cereus;Bacillus thuringiensis;Bacillus Unclassified;Bacillus wiedmannii",
+                     "Bacillus cereus/thuringiensis/wiedmannii",
+                     "Bacillus anthracis/cereus/phage/thuringiensis")
+
+Bacillus_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Bacillus_Cereus)])
+
+
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Bacillus_Cereus)]
+forHeat_format <- cbind(forHeat_format, Bacillus_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Bacillus cereus"
+
+
+
+Bacillus_phage <- c("Bacillus phage",
+                    "Bacillus phage phBC6A52")
+
+Bacillus_phage_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Bacillus_phage)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Bacillus_phage)]
+forHeat_format <- cbind(forHeat_format, Bacillus_phage_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Bacillus phage"
+
+Enterococcus_faecalis <- c("Enterococcus canis/faecalis",
+                           "Enterococcus canis;Enterococcus casseliflavus;Enterococcus faecalis;Enterococcus gallinarum;Enterococcus Unclassified;Melissococcus plutonius")
+
+Enterococcus_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Enterococcus_faecalis)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Enterococcus_faecalis)]
+forHeat_format <- cbind(forHeat_format, Enterococcus_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Enterococcus faecalis"
+
+
+Escherichia <- c("Escherichia coli",
+                 "Escherichia coli;Salmonella enterica;Shigella boydii")
+
+Escherichia_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Escherichia)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Escherichia)]
+forHeat_format <- cbind(forHeat_format, Escherichia_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Escherichia coli"
+
+lactobacillus_gas <- c("Lactobacillus gasseri", "Lactobacillus gasseri;Lactobacillus johnsonii",
+                       "Lactobacillus gasseri/johnsonii")
+
+lacto_gas_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% lactobacillus_gas)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% lactobacillus_gas)]
+forHeat_format <- cbind(forHeat_format, lacto_gas_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Lactobacillus gasseri"
+
+Listeria <- c("Listeria innocua;Listeria monocytogenes",
+              "Listeria innocua/monocytogenes",
+              "Listeria monocytogenes")
+
+list_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Listeria)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Listeria)]
+forHeat_format <- cbind(forHeat_format, list_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Listeria monocytogenes"
+
+
+Pseudomonas <- c("Pseudomonas aeruginosa", "Pseudomonas aeruginosa;Pseudomonas Unclassified")
+
+pseudo_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Pseudomonas)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Pseudomonas)]
+forHeat_format <- cbind(forHeat_format, pseudo_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Pseudomonas aeruginosa"
+
+Staph_a <- c("Staphylococcus aureus", "Staphylococcus argenteus/aureus")
+
+Staph_a_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% Staph_a)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% Staph_a)]
+forHeat_format <- cbind(forHeat_format, Staph_a_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Staphylococcus aureus"
+
+
+both_staph <- c("Staphylococcus argenteus/aureus/epidermidis/petrasii/warneri", "Staphylococcus aureus;Staphylococcus epidermidis")
+
+Staph_both_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% both_staph)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% both_staph)]
+forHeat_format <- cbind(forHeat_format, Staph_both_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Staphylococcus aureus;S. epidermidis"
+
+
+strep_agal <- c("Streptococcus agalactiae;Streptococcus phage 10750.4","Streptococcus agalactiae")
+
+strep_agal_sum <- rowSums(forHeat_format[,which(colnames(forHeat_format) %in% strep_agal)])
+
+forHeat_format <- forHeat_format[,-which(colnames(forHeat_format) %in% strep_agal)]
+forHeat_format <- cbind(forHeat_format, strep_agal_sum)
+colnames(forHeat_format)[ncol(forHeat_format)] <- "Streptococcus agalactiae"
+
+
+### sort columns by alphabetical order
+forHeat_format <- forHeat_format[, order(colnames(forHeat_format))]
+
+### okay now format
+others <- c("Ambiguous", "Unknown", "Other")
+included.df <- data.frame(rep("Not included", length(colnames(forHeat_format))))
+colnames(included.df) <- "Mock Community"
+included.df[which(colnames(forHeat_format) %in% included), "Mock Community"] <- "Included"
+included.df[which(colnames(forHeat_format) %in% others), "Mock Community"] <- "Other"
+rownames(included.df) <- colnames(forHeat_format)
+
+type <- gsub("s\\d+_", "", colnames(forHeat_format))
+col_fun = viridis(3)
+ha = columnAnnotation(
+  df = included.df[,1], show_annotation_name=FALSE, 
+  annotation_legend_param = list(title = "Mock Community"),
+  col=list(df = c("Included" =  viridis(4)[2],"Not included" = viridis(4)[3], "Other" = viridis(4)[1]))
+)
+region.df <- data.frame(c(rep("V1V2", length(rownames(forHeat_format))/2), rep("V4V5", length(rownames(forHeat_format))/2)))
+colnames(region.df) <- "16S Region"
+rownames(region.df) <- rownames(forHeat_format)
+
+ra = rowAnnotation(
+  df = region.df[,1], show_annotation_name=FALSE, 
+  annotation_legend_param = list(title = "16S Region"),
+  col=list(df = c("V1V2" =  turbo(7)[2],"V4V5" = turbo(7)[4]))
+)
+col_fun <- c("grey",   rev(magma(98)))
+
+
+
+
+ht1 <- Heatmap(sqrt(forHeat_format), name = "sqrt(Rel.\nabundance)", col=col_fun,
+               column_names_max_height = unit(15, "cm"),
+               cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
+               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 7), 
+               column_split = included.df[,"Mock Community"], column_title=NULL, top_annotation = ha,
+               row_split = region.df[,"16S Region"], row_title=NULL, right_annotation = ra,
+               row_names_gp = grid::gpar(fontsize = 10))  %v% NULL
+
+draw(ht1)
+
+
+png(paste0(opts$o, "/Main_MockHeatmap.png"),width=9.5,height=4.5,units="in", res=600)
+ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
+               column_names_max_height = unit(15, "cm"),
+               cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
+               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 7), 
+               column_split = included.df[,"Mock Community"], column_title=NULL, top_annotation = ha,
+               row_split = region.df[,"16S Region"], row_title=NULL, right_annotation = ra,
+               row_names_gp = grid::gpar(fontsize = 10))  %v% NULL
+
+draw(ht1)
+
+dev.off()
+
+pdf(paste0(opts$o, "/Main_MockHeatmap.pdf"),width=9.5,height=3)
+ht1 <- Heatmap(sqrt(forHeat), name = "sqrt(Rel.\nabundance)", col=col_fun,
+               column_names_max_height = unit(15, "cm"),
+               cluster_columns = FALSE, cluster_rows=FALSE, column_names_rot = 45, 
+               column_names_side = "top", column_names_gp = grid::gpar(fontsize = 7), 
+               column_split = included.df[,"Mock Community"], column_title=NULL, top_annotation = ha,
+               row_split = region.df[,"16S Region"], row_title=NULL, right_annotation = ra,
+               row_names_gp = grid::gpar(fontsize = 10))  %v% NULL
+
+draw(ht1)
+
+dev.off()
