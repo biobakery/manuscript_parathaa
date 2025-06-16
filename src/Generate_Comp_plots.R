@@ -26,13 +26,18 @@ library(stringr)
 library(microbiomeutilities)
 library(phyloseq)
 library(cowplot)
+library(pals)
 
-color_hex_codes <- c("#cd5645", "#56a959", "#7967d5", "#7bb136", "#c05db6", 
-                              "#d39d29", "#7c87c5", "#b9853c", "#4ba98c", "#c75980", 
-                              "#96894d")
-query_reads <- "~/Repos/Hills_Project/Parathaa_Project/Parathaa_on_real_data/mine_data/v45/dada2_output/rep-seqs/dna-sequences.fasta"
-abundance_file <- "~/Repos/Hills_Project/Parathaa_Project/Parathaa_on_real_data/mine_data/v45/dada2_output/abundance_table/feature-table.tsv"
-parathaa_file <- "~/Repos/Hills_Project/Parathaa_Project/Real_Datasets_July_22/MINE/v45/parathaa_assignments/taxonomic_assignments.tsv"
+
+
+#color_hex_codes <- c("#cd5645", "#56a959", "#7967d5", "#7bb136", "#c05db6", 
+ #                             "#d39d29", "#7c87c5", "#b9853c", "#4ba98c", "#c75980", 
+  #                            "#96894d")
+
+color_hex_codes <- stepped2(n=10)
+query_reads <- "~/Repos/Hills_Project/Parathaa_Project/Parathaa_on_real_data/Oral_microbiome/Final_data/Rep_seqs.fasta"
+abundance_file <- "~/Repos/Hills_Project/Parathaa_Project/Parathaa_on_real_data/Oral_microbiome/Final_data/abundance_table.tsv"
+parathaa_file <- "~/Repos/Hills_Project/Parathaa_Project/Real_Datasets_July_22/ORAL/v45/parathaa_assignments/taxonomic_assignments.tsv"
 
 query_reads <- opts$query
 abundance_file <- opts$abund_tab
@@ -72,7 +77,7 @@ assign_dada_taxonomy <- function(query_reads, dada_db, dada_db_sp, allow_multi){
 }
 
 
-generate_phyloseq_object <- function(parathaa_assignments, dada2_assignment, abundance_table){
+generate_phyloseq_object <- function(parathaa_assignments, dada2_assignment, abundance_table, indiv=FALSE){
   
   ## Make DADA2 phyloseq object ##
   TAX_dada <- tax_table(as.matrix(dada2_assignment))
@@ -105,8 +110,13 @@ generate_phyloseq_object <- function(parathaa_assignments, dada2_assignment, abu
   colnames(samp_parathaa) <- c("sampleID", "Taxonomy_type")
   rownames(samp_parathaa) <- paste0(samp_parathaa$sampleID, "b")  
   SAMP_parathaa <- sample_data(samp_parathaa)
+
   
   ps1_parathaa <- phyloseq(OTU_parathaa, TAX_parathaa, SAMP_parathaa)  
+  
+  if(indiv){
+    return(list(ps1_dada, ps1_parathaa))
+  }
   
   ps1_all<- merge_phyloseq(ps1_dada, ps1_parathaa)
   
@@ -125,7 +135,8 @@ generate_bray_PCoA <- function(ps1.com, skip="", remove_unknown=FALSE){
       break
     }
     if(remove_unknown){
-      ps1.com <- subset_taxa(ps1.com,  eval(as.name(level)) != "unassigned")
+      remove_otus <- rownames(ps1.com@tax_table)[which(!is.na(ps1.com@tax_table[,level]))]
+      ps1.com <- prune_taxa(remove_otus,  ps1.com)
     }
     ps1.com.lev <- aggregate_rare(ps1.com, level, detection = .001/100, prevalence = 1/100)
     ps1.com.lev.agg <- aggregate_taxa(ps1.com.lev, level=level)
@@ -135,8 +146,9 @@ generate_bray_PCoA <- function(ps1.com, skip="", remove_unknown=FALSE){
     #adonis2(brays ~ sample_data(ps1.com.lev.agg.rel)$Taxonomy_type)
     plot_data = plot_ordination(ps1.com.lev.agg.rel, GP.ord, type="samples", color="Taxonomy_type", title=level, justDF = TRUE) 
     
-    p1 <- ggplot(plot_data, aes(x=Axis.1, y=Axis.2, color=Taxonomy_type)) + geom_point(alpha=0.3, size=2) +
-      theme_bw() + geom_polygon(aes(group=sampleID), color="grey", alpha=0.1)
+    p1 <- ggplot(plot_data, aes(x=Axis.1, y=Axis.2, color=Taxonomy_type, shape=Taxonomy_type)) + geom_point(alpha=0.5, size=2) +
+      theme_bw() + geom_polygon(aes(group=sampleID), color="grey", alpha=0.1) +
+      scale_shape_manual(name="Taxonomy_type", values=c("DADA2"=17, "Parathaa"=16))
     
     cum_eg <- sum(GP.ord$values$Eigenvalues)
     var1 <- round(GP.ord$values$Eigenvalues[1]/cum_eg * 100, digits = 3)
@@ -186,13 +198,28 @@ generate_taxonomy_plots <- function(ps1.com, order){
     plot.composition.relAbun$data$Tax <- as.character(plot.composition.relAbun$data$Tax)
     plot.composition.relAbun$data$Tax <- gsub("(;[^;]*);", "\\1\n", plot.composition.relAbun$data$Tax)
     plot.composition.relAbun$data$Tax <- factor(plot.composition.relAbun$data$Tax)
-    plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
+    
+    
+    if(length(which(grepl("Other", plot.composition.relAbun$data$Tax)))!=0){
+      plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Other")
+      plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
+      
+      plot.composition.relAbun <- plot.composition.relAbun +   theme(axis.text.x = element_blank()) + 
+        scale_x_discrete(labels=xlabs) + xlab("") + facet_grid(rows=vars(xlabel), scales = "free", space="free") + 
+        scale_fill_manual(values= c("white", "grey", color_hex_codes))
+      plotList[[level]] <- plot.composition.relAbun
+    }else{
+      plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
+      
+      plot.composition.relAbun <- plot.composition.relAbun +   theme(axis.text.x = element_blank()) + 
+        scale_x_discrete(labels=xlabs) + xlab("") + facet_grid(rows=vars(xlabel), scales = "free", space="free") + 
+        scale_fill_manual(values= c("white", color_hex_codes))
+      plotList[[level]] <- plot.composition.relAbun
+    }
 
 
-    plot.composition.relAbun <- plot.composition.relAbun +   theme(axis.text.x = element_blank()) + 
-      scale_x_discrete(labels=xlabs) + xlab("") + facet_grid(rows=vars(xlabel), scales = "free", space="free") + 
-      scale_fill_manual(values= c("white", color_hex_codes))
-    plotList[[level]] <- plot.composition.relAbun
+
+
     
   }
   return(plotList)
@@ -237,12 +264,24 @@ plot_average_taxa <- function(ps1.com){
     plot.composition.relAbun$data$Tax <- as.character(plot.composition.relAbun$data$Tax)
     plot.composition.relAbun$data$Tax <- gsub("(;[^;]*);", "\\1\n", plot.composition.relAbun$data$Tax)
     plot.composition.relAbun$data$Tax <- factor(plot.composition.relAbun$data$Tax)
-    plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
     
-    
-    plot.composition.relAbun <- plot.composition.relAbun + xlab("") +
-      scale_fill_manual(values= c("white", color_hex_codes))
-    plotList[[level]] <- plot.composition.relAbun
+    if(length(which(grepl("Other", plot.composition.relAbun$data$Tax)))!=0){
+      
+      plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Other")
+      plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
+      
+      plot.composition.relAbun <- plot.composition.relAbun + xlab("") +
+        scale_fill_manual(values= c("white", "grey", color_hex_codes))
+      plotList[[level]] <- plot.composition.relAbun
+    }else{
+      
+      plot.composition.relAbun$data$Tax <- relevel(plot.composition.relAbun$data$Tax, "Unknown")
+      
+      plot.composition.relAbun <- plot.composition.relAbun + xlab("") +
+        scale_fill_manual(values= c("white", color_hex_codes))
+      plotList[[level]] <- plot.composition.relAbun
+    }
+
     
   }
   return(plotList)
@@ -308,13 +347,6 @@ dada2_assignment[dada2_assignment=="uncultured"] <- NA
 abundance_table <- read.table(abundance_file, sep="\t", header=T, check.names = F, comment.char="", skip=1, row.names=1)
 
 
-
-#if we want to subset to 100 samples (used in the oral dataset that is very large)
-if(opts$subset==TRUE){
-  abundance_table <- abundance_table[,sample(colnames(abundance_table, 100))] 
-}
-
-
 merged_phyloseq <- generate_phyloseq_object(parathaa_assignments_fix, dada2_assignment, abundance_table)
 
 
@@ -345,6 +377,145 @@ average_plots <- plot_average_taxa(merged_phyloseq)
 saveRDS(average_plots, file=file.path(outputDir, "average_plots.RDS"))
 
 ## done saved all the plots
+indiv_phyloseqs <- generate_phyloseq_object(parathaa_assignments_fix, dada2_assignment, abundance_table, indiv = TRUE)
+### generate mean dada2 profiles
+ps1_dada_Genus <- aggregate_taxa(indiv_phyloseqs[[1]], level="Genus")
+ps1_dada_Genus <- transform(ps1_dada_Genus, transform = "compositional")
+ps1_dada_phyla <- ps1_dada_Genus@tax_table[,"Phylum"]
+
+ps1_genus_rowmeans <- rowMeans(ps1_dada_Genus@otu_table)
+
+
+ps1_parathaa_Genus <- aggregate_taxa(indiv_phyloseqs[[2]], level="Genus")
+ps1_parathaa_Genus <- transform(ps1_parathaa_Genus, transform = "compositional")
+ps1_parathaa_phyla <- ps1_parathaa_Genus@tax_table[,"Phylum"]
+ps1_parathaa_rowmeans <- rowMeans(ps1_parathaa_Genus@otu_table)
+
+
+names(ps1_parathaa_rowmeans)
+names(ps1_genus_rowmeans)
+
+parathaa_mean_df <- data.frame(Genus=names(ps1_parathaa_rowmeans),
+                               Parathaa_Abundance=ps1_parathaa_rowmeans,
+                               Phylum=ps1_parathaa_phyla)
+
+dada2_mean_df <- data.frame(Genus=names(ps1_genus_rowmeans),
+                            DADA2_abundance=ps1_genus_rowmeans,
+                            Phylum=ps1_dada_phyla)
+
+merged_df <- full_join(parathaa_mean_df, dada2_mean_df, by="Genus")
+merged_df[is.na(merged_df)] <- 0
+
+###fix phylum
+merged_df[which(merged_df$Phylum.x==0), "Phylum.x"] <- merged_df$Phylum.y[which(merged_df$Phylum.x==0)]
+merged_df[which(merged_df$Phylum.y==0), "Phylum.y"] <- merged_df$Phylum.x[which(merged_df$Phylum.y==0)]
+
+merged_df$Phylum <- merged_df$Phylum.x
+###check which are below 10
+keep_phyla <- names(which(table(merged_df$Phylum) > 10))
+keep_phyla
+
+merged_df <- merged_df %>% mutate(filter_Phylum =case_when(
+  Phylum %in% keep_phyla ~ Phylum,
+  !Phylum %in% keep_phyla ~ "Other"
+))
+
+
+###plot without filtering
+
+
+
+genus_cor <- cor.test(merged_df$Parathaa_Abundance, merged_df$DADA2_abundance, method="pearson")
+genus_cor$estimate
+
+scatter <- ggplot(merged_df, aes(x=Parathaa_Abundance, y=DADA2_abundance, color=filter_Phylum)) +
+  geom_point(size=2) +
+  geom_abline(slope=1, color="grey") +
+  annotate("text", x=0.00003, y=0.8, label=paste0("r = ",round(genus_cor$estimate, digits = 3)), size=4, color="red") +
+  scale_y_log10() +
+  scale_x_log10() +
+  theme_bw() +
+  xlab("Parathaa Mean Genus Abundance") +
+  ylab("DADA2 Mean Genus Abundance") +
+  scale_color_manual(values=color_hex_codes, name="Phylum")
+
+scatter
+
+saveRDS(scatter, file=file.path(outputDir, "scatter_genus_abundance.RDS"))
+saveRDS(merged_df, file=file.path(outputDir, "genus_abundance_average.RDS"))
+
+
+### Species scatter
+### generate mean dada2 profiles
+if(skip!="Species"){
+  ps1_dada_Species <- aggregate_taxa(indiv_phyloseqs[[1]], level="Species")
+  ps1_dada_Species <- transform(ps1_dada_Species, transform = "compositional")
+  ps1_dada_phyla <- ps1_dada_Species@tax_table[,"Phylum"]
+  
+  ps1_Species_rowmeans <- rowMeans(ps1_dada_Species@otu_table)
+  
+  
+  ps1_parathaa_Species <- aggregate_taxa(indiv_phyloseqs[[2]], level="Species")
+  ps1_parathaa_Species <- transform(ps1_parathaa_Species, transform = "compositional")
+  ps1_parathaa_phyla <- ps1_parathaa_Species@tax_table[,"Phylum"]
+  ps1_parathaa_rowmeans <- rowMeans(ps1_parathaa_Species@otu_table)
+  
+  
+  names(ps1_parathaa_rowmeans)
+  names(ps1_Species_rowmeans)
+  
+  parathaa_mean_df <- data.frame(Species=names(ps1_parathaa_rowmeans),
+                                 Parathaa_Abundance=ps1_parathaa_rowmeans,
+                                 Phylum=ps1_parathaa_phyla)
+  
+  dada2_mean_df <- data.frame(Species=names(ps1_Species_rowmeans),
+                              DADA2_abundance=ps1_Species_rowmeans,
+                              Phylum=ps1_dada_phyla)
+  
+  merged_df <- full_join(parathaa_mean_df, dada2_mean_df, by="Species")
+  merged_df[is.na(merged_df)] <- 0
+  
+  ###fix phylum
+  merged_df[which(merged_df$Phylum.x==0), "Phylum.x"] <- merged_df$Phylum.y[which(merged_df$Phylum.x==0)]
+  merged_df[which(merged_df$Phylum.y==0), "Phylum.y"] <- merged_df$Phylum.x[which(merged_df$Phylum.y==0)]
+  
+  merged_df$Phylum <- merged_df$Phylum.x
+  ###check which are below 10
+  keep_phyla <- names(which(table(merged_df$Phylum) > 10))
+  keep_phyla
+  
+  merged_df <- merged_df %>% mutate(filter_Phylum =case_when(
+    Phylum %in% keep_phyla ~ Phylum,
+    !Phylum %in% keep_phyla ~ "Other"
+  ))
+  
+  
+  ###plot without filtering
+  
+  
+  
+  Species_cor <- cor.test(merged_df$Parathaa_Abundance, merged_df$DADA2_abundance, method="pearson")
+  Species_cor$estimate
+  
+  scatter <- ggplot(merged_df, aes(x=Parathaa_Abundance, y=DADA2_abundance, color=filter_Phylum)) +
+    geom_point(size=2) +
+    geom_abline(slope=1, color="grey") +
+    annotate("text", x=0.00003, y=0.8, label=paste0("r = ",round(Species_cor$estimate, digits = 3)), size=4, color="red") +
+    scale_y_log10() +
+    scale_x_log10() +
+    theme_bw() +
+    xlab("Parathaa Mean Species Abundance") +
+    ylab("DADA2 Mean Species Abundance") +
+    scale_color_manual(values=color_hex_codes, name="Phylum")
+  
+  scatter
+  
+  saveRDS(scatter, file=file.path(outputDir, "scatter_Species_abundance.RDS"))
+  saveRDS(merged_df, file=file.path(outputDir, "Species_abundance_average.RDS"))
+}
+
+
+
 
 if(opts$subset){
   set.seed(29)
@@ -358,7 +529,7 @@ if(opts$subset){
   #save phyloseq object
   saveRDS(merged_phyloseq, file=file.path(outputDir, "merged_phyloseq_sub.RDS"))
   
-  bray_plots<- generate_bray_PCoA(merged_phyloseq, skip=skip, remove_unknown = FALSE)
+  bray_plots<- generate_bray_PCoA(merged_phyloseq, skip=skip, remove_unknown = TRUE)
   
   saveRDS(bray_plots, file=file.path(outputDir, "bray_plots_sub.RDS"))
   
@@ -378,11 +549,5 @@ if(opts$subset){
 }
 
 
-# ps1_dada_Genus <- aggregate_taxa(ps1_dada, level="Genus")
-# ps1_dada_Genus <- transform(ps1_dada_Genus, transform = "compositional")
-# ps1_genus_rowmeans <- rowMeans(ps1_dada_Genus@otu_table)
-# 
-# 
-# ps1_parathaa_Genus <- aggregate_taxa(ps1_parathaa, level="Genus")
-# ps1_parathaa_Genus <- transform(ps1_parathaa_Genus, transform = "compositional")
-# ps1_parathaa_rowmeans <- rowMeans(ps1_parathaa_Genus@otu_table)
+## generate genus level mean scatter plots
+
