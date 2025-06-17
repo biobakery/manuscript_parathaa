@@ -376,6 +376,13 @@ workflow.add_task(
     name="download pre-computed full length database"
 )
 
+workflow.add_task(
+    "wget  http://huttenhower.sph.harvard.edu/parathaa_db/SILVA_V1V3_May25.tar.gz  -O input/SILVA_V1V3.tar.gz; tar -xf input/SILVA_V1V3.tar.gz -C input/; rm input/SILVA_V1V3.tar.gz",
+    targets=V1V3_db,
+    name="download pre-computed full length database"
+)
+
+
 #download GTDB databases
 
 workflow.add_task(
