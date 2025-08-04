@@ -19,6 +19,7 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   ## we treat unclassified labels as unassigned in this case
   hierarchy <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
   tax_parathaa <- tax_parathaa %>% mutate_at(vars(hierarchy), ~ str_replace(., "\\b\\w+ Unclassified", ""))
+  tax_parathaa <- tax_parathaa %>% mutate_at(vars(hierarchy), ~ str_replace(., "\\b\\w+ unclassified", ""))
   ##then if we have blank string we replace with NA
   tax_parathaa <- tax_parathaa %>% mutate_at(vars(hierarchy), ~ na_if(., ""))
   ## replace any that are just ;
@@ -421,6 +422,8 @@ performance.table <- function(compareData, level){
     #Unassigned incorrect are cases when we don't make an assignment but the taxonomy we were suppose to assign does exist 
     # within the database
     unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Species.parathaa) & is.na(Flag.y)) %>% nrow() /nrow(compareData)
+    multIncorrect.parathaa <- compareData %>% filter(grepl(";", Species.parathaa)) %>% filter(!Flag.y) %>% nrow() /nrow(compareData)
+    uniquelyIncorrect.parathaa <- compareData %>% filter(!grepl(";", Species.parathaa)) %>% filter(!Flag.y) %>% nrow() / nrow(compareData)
   }
   
   # For information about individual variables see above section
@@ -434,6 +437,8 @@ performance.table <- function(compareData, level){
     uniqueCorrect.parathaa <- compareData %>% filter(Genus.parathaa==Genus.groundtruth) %>% nrow() /nrow(compareData)
     unassignedCorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & Flag.genus.y) %>% nrow() /nrow(compareData)
     unassignedIncorrect.parathaa <- compareData %>% filter(is.na(Genus.parathaa) & is.na(Flag.genus.y)) %>% nrow() /nrow(compareData)
+    multIncorrect.parathaa <- compareData %>% filter(grepl(";", Genus.parathaa)) %>% filter(!Flag.genus.y) %>% nrow() /nrow(compareData)
+    uniquelyIncorrect.parathaa <- compareData %>% filter(!grepl(";", Genus.parathaa)) %>% filter(!Flag.genus.y) %>% nrow() / nrow(compareData)
   }
   
   #Calculate metrics
@@ -453,6 +458,8 @@ performance.table <- function(compareData, level){
     uniqueCorrect.dada <- compareData %>% filter(Species.dada==Species.groundtruth) %>% nrow() /nrow(compareData)
     unassignedCorrect.dada <- compareData %>% filter(is.na(Species.dada) & Flag.x) %>% nrow() /nrow(compareData)
     unassignedIncorrect.dada <- compareData %>% filter(is.na(Species.dada) & is.na(Flag.x)) %>% nrow() /nrow(compareData)
+    multIncorrect.dada <- compareData %>% filter(grepl(";", Species.dada)) %>% filter(!Flag.x) %>% nrow() /nrow(compareData)
+    uniquelyIncorrect.dada <- compareData %>% filter(!grepl(";", Species.dada)) %>% filter(!Flag.x) %>% nrow() / nrow(compareData)
   }
   if(level=="Genus"){
     TP.dada <- compareData %>% filter( Flag.genus.x) %>% nrow()
@@ -463,6 +470,8 @@ performance.table <- function(compareData, level){
     uniqueCorrect.dada <- compareData %>% filter(Genus.dada==Genus.groundtruth) %>% nrow() /nrow(compareData)
     unassignedCorrect.dada <- compareData %>% filter(is.na(Genus.dada) & Flag.genus.x) %>% nrow() /nrow(compareData)
     unassignedIncorrect.dada <- compareData %>% filter(is.na(Genus.dada) & is.na(Flag.genus.x)) %>% nrow() /nrow(compareData)
+    multIncorrect.dada <- compareData %>% filter(grepl(";", Genus.dada)) %>% filter(!Flag.genus.x) %>% nrow() /nrow(compareData)
+    uniquelyIncorrect.dada <- compareData %>% filter(!grepl(";", Genus.dada)) %>% filter(!Flag.genus.x) %>% nrow() / nrow(compareData)
   }
   
   accuracy.dada <- (TP.dada + TN.dada) / (TP.dada + TN.dada + FP.dada + FN.dada)
@@ -489,6 +498,10 @@ performance.table <- function(compareData, level){
   table.out["Unassigned Correct", "DADA2"] <- unassignedCorrect.dada
   table.out["Unassigned Incorrect", "Parathaa"] <- unassignedIncorrect.parathaa
   table.out["Unassigned Incorrect", "DADA2"] <- unassignedIncorrect.dada
+  table.out["One-to-many Incorrect", "Parathaa"] <- multIncorrect.parathaa
+  table.out["One-to-many Incorrect", "DADA2"] <- multIncorrect.dada
+  table.out["Uniquely Incorrect", "Parathaa"] <- uniquelyIncorrect.parathaa
+  table.out["Uniquely Incorrect", "DADA2"] <- uniquelyIncorrect.dada
   
   table.out["Accuracy", "Parathaa"] <- accuracy.parathaa
   table.out["Accuracy", "DADA2"] <- accuracy.dada
@@ -555,12 +568,12 @@ Bench_IDTAXA <- function(sequenceFile, genus_class, species_class, threads=8, in
     dplyr::rename(Family_Assignment=taxon_6) %>%
     dplyr::rename(Genus_Assignment=taxon_7)
   
-  genus_assignments$Kingdom_Assignment[grep("unclassified_", genus_assignments$Kingdom_Assignment)] <- NA
-  genus_assignments$Phylum_Assignment[grep("unclassified_", genus_assignments$Phylum_Assignment)] <- NA
-  genus_assignments$Class_Assignment[grep("unclassified_", genus_assignments$Class_Assignment)] <- NA
-  genus_assignments$Order_Assignment[grep("unclassified_", genus_assignments$Order_Assignment)] <- NA
-  genus_assignments$Family_Assignment[grep("unclassified_", genus_assignments$Family_Assignment)] <- NA
-  genus_assignments$Genus_Assignment[grep("unclassified_", genus_assignments$Genus_Assignment)] <- NA
+  genus_assignments$Kingdom_Assignment[grep("unclassified_", genus_assignments$Kingdom_Assignment, ignore.case = T)] <- NA
+  genus_assignments$Phylum_Assignment[grep("unclassified_", genus_assignments$Phylum_Assignment, ignore.case = T)] <- NA
+  genus_assignments$Class_Assignment[grep("unclassified_", genus_assignments$Class_Assignment, ignore.case = T)] <- NA
+  genus_assignments$Order_Assignment[grep("unclassified_", genus_assignments$Order_Assignment, ignore.case = T)] <- NA
+  genus_assignments$Family_Assignment[grep("unclassified_", genus_assignments$Family_Assignment, ignore.case = T)] <- NA
+  genus_assignments$Genus_Assignment[grep("unclassified_", genus_assignments$Genus_Assignment, ignore.case = T)] <- NA
 
   ## create comparison frame
   if(regionName=="FL"){
@@ -658,13 +671,13 @@ Bench_IDTAXA <- function(sequenceFile, genus_class, species_class, threads=8, in
     dplyr::rename(Species_Assignment=taxon_8)
   
   #search through and set Na to all _unclassified
-  specs_assignments$Kingdom_Assignment[grep("unclassified_", specs_assignments$Kingdom_Assignment)] <- NA
-  specs_assignments$Phylum_Assignment[grep("unclassified_", specs_assignments$Phylum_Assignment)] <- NA
-  specs_assignments$Class_Assignment[grep("unclassified_", specs_assignments$Class_Assignment)] <- NA
-  specs_assignments$Order_Assignment[grep("unclassified_", specs_assignments$Order_Assignment)] <- NA
-  specs_assignments$Family_Assignment[grep("unclassified_", specs_assignments$Family_Assignment)] <- NA
-  specs_assignments$Genus_Assignment[grep("unclassified_", specs_assignments$Genus_Assignment)] <- NA
-  specs_assignments$Species_Assignment[grep("unclassified_", specs_assignments$Species_Assignment)] <- NA
+  specs_assignments$Kingdom_Assignment[grep("unclassified_", specs_assignments$Kingdom_Assignment, ignore.case = T)] <- NA
+  specs_assignments$Phylum_Assignment[grep("unclassified_", specs_assignments$Phylum_Assignment, ignore.case = T)] <- NA
+  specs_assignments$Class_Assignment[grep("unclassified_", specs_assignments$Class_Assignment, ignore.case = T)] <- NA
+  specs_assignments$Order_Assignment[grep("unclassified_", specs_assignments$Order_Assignment, ignore.case = T)] <- NA
+  specs_assignments$Family_Assignment[grep("unclassified_", specs_assignments$Family_Assignment, ignore.case = T)] <- NA
+  specs_assignments$Genus_Assignment[grep("unclassified_", specs_assignments$Genus_Assignment, ignore.case = T)] <- NA
+  specs_assignments$Species_Assignment[grep("unclassified_", specs_assignments$Species_Assignment, ignore.case = T)] <- NA
   
   specs_assignments <- specs_assignments %>% 
     mutate(Species_Assignment = word(Species_Assignment, 1, 2))
