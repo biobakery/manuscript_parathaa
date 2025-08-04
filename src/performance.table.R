@@ -483,7 +483,8 @@ performance.table <- function(compareData, level){
   
   #set up the output table
   rows1 <- c(             "Accuracy", "Precision", "Recall", "F1 Score",
-                          "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect")
+                          "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect", 
+                          "One-to-many Incorrect", "Uniquely Incorrect")
   
   table.out <- matrix(NA, nrow = length(rows1), ncol=2)
   colnames(table.out) <- c("Parathaa", "DADA2")
