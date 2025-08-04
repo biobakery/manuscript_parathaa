@@ -229,8 +229,9 @@ run.synthetic.data <- function(parathaaFile, sequenceFile, regionName, outputDir
   # Grab the parathaa taxonomy table
   synth.parathaa<- as.data.frame(tax_table(ps1_parathaa))
   ## here we remove cases where ;NA and ;; are together
-  synth.parathaa <- synth.parathaa %>% mutate_at(vars(hierarchy), ~ str_replace(., ";$", ""))
-  synth.parathaa <- synth.parathaa %>% mutate_at(vars(hierarchy), ~ str_replace_all(., ";+", ";"))
+  ## we can add the below two lines if we do not want to consider unclassified as a multi-assignment
+  #synth.parathaa <- synth.parathaa %>% mutate_at(vars(hierarchy), ~ str_replace(., ";$", ""))
+  #synth.parathaa <- synth.parathaa %>% mutate_at(vars(hierarchy), ~ str_replace_all(., ";+", ";"))
   
   #Join the Parathaa taxonomy table to the true reference taxonomies by their accession
   if(SILVA){
