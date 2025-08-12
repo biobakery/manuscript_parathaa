@@ -788,6 +788,9 @@ performance_single_run <- function(compareData, level){
     uniqueCorrect <- compareData %>% filter(Genus_Assignment==Genus) %>% nrow() /nrow(compareData)
     unassignedCorrect <- compareData %>% filter(is.na(Genus_Assignment) & Flag.genus) %>% nrow() /nrow(compareData)
     unassignedIncorrect <- compareData %>% filter(is.na(Genus_Assignment) & is.na(Flag.genus)) %>% nrow() /nrow(compareData)
+    #add in the other two categories...
+    multIncorrect <- compareData %>% filter(grepl(";", Genus_Assignment)) %>% filter(!Flag.genus) %>% nrow() /nrow(compareData)
+    uniquelyIncorrect <- compareData %>% filter(!grepl(";", Genus_Assignment)) %>% filter(!Flag.genus) %>% nrow() / nrow(compareData)
   }
   
   if(level=="Species"){
@@ -800,6 +803,8 @@ performance_single_run <- function(compareData, level){
     uniqueCorrect <- compareData %>% filter(Species_Assignment==Species) %>% nrow() /nrow(compareData)
     unassignedCorrect <- compareData %>% filter(is.na(Species_Assignment) & Flag) %>% nrow() /nrow(compareData)
     unassignedIncorrect <- compareData %>% filter(is.na(Species_Assignment) & is.na(Flag)) %>% nrow() /nrow(compareData)
+    multIncorrect <- compareData %>% filter(grepl(";", Species_Assignment)) %>% filter(!Flag) %>% nrow() /nrow(compareData)
+    uniquelyIncorrect <- compareData %>% filter(!grepl(";", Species_Assignment)) %>% filter(!Flag) %>% nrow() / nrow(compareData)
   }
   
   #Calculate metrics
@@ -812,7 +817,8 @@ performance_single_run <- function(compareData, level){
   
   #set up the output table
   rows1 <- c(             "Accuracy", "Precision", "Recall", "F1 Score",
-                          "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned Correct", "Unassigned Incorrect")
+                          "Uniquely Correct", "One-to-many Correct", "Incorrect", "Unassigned Correct", 
+                          "Unassigned Incorrect", "One-to-many Incorrect", "Uniquely Incorrect")
   
   table.out <- matrix(NA, nrow = length(rows1), ncol=1)
   colnames(table.out) <- c("Query_Tool")
@@ -822,6 +828,8 @@ performance_single_run <- function(compareData, level){
   table.out["Incorrect", "Query_Tool"] <- fpr
   table.out["Unassigned Correct", "Query_Tool"] <- unassignedCorrect
   table.out["Unassigned Incorrect", "Query_Tool"] <- unassignedIncorrect
+  table.out["One-to-many Incorrect", "Query_Tool"] <- multIncorrect
+  table.out["Uniquely Incorrect", "Query_Tool"] <- uniquelyIncorrect
   
   table.out["Accuracy", "Query_Tool"] <- accuracy
   table.out["Precision", "Query_Tool"] <- precision

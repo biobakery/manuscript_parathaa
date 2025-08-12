@@ -99,6 +99,33 @@ create_parathaa_plot <- function(res_df){
 }
 
 
+create_dada2_plot <- function(res_df){
+  
+  par_df <- res_df %>% mutate("# of dada Assignments"=str_count(Species.dada, ";") + 1)
+  
+  ##anything that is NA in Flag's are now incorrect unassigned so we can just call these incorrect.
+  par_df$Flag.x[which(is.na(par_df$Flag.x))] <- FALSE
+  par_df$`# of dada Assignments`[which(is.na(par_df$`# of dada Assignments`))] <- 0
+  
+  
+  ##Flag.y indicates if Parathaa was correct or not.
+  
+  ##filter out things that didn;t get any assignment.
+  parathaa_data <- par_df %>% filter(!is.na(Species.dada))
+  
+  parathaa_plot <- parathaa_data %>% ggplot(aes(x=`# of dada Assignments`, fill=Flag.x)) + geom_histogram(binwidth=1) +
+    theme_bw() + ylab("Number of sequences") + labs(fill="Correct Assignment") +
+    ylim(c(0,3700)) +
+    coord_cartesian(xlim=c(1,12)) +
+    scale_x_continuous(breaks=seq(1,12, by=1)) +
+    xlab("Number of ambiguous taxa")
+  #scale_x_continuous(breaks = seq(floor(min(parathaa_data$`# of Parathaa Assignments`)), 
+  #                               ceiling(max(parathaa_data$`# of Parathaa Assignments`)), by = 1))
+  
+  return(parathaa_plot)
+}
+
+
 ## Load V1V2 data
 load("holdout1/Figures/synth_mult_arc/V1V2_full_comparisons_adjust.RData")
 V1V2_data <- compare.synth_adjust
@@ -119,7 +146,58 @@ V4V5_par_plot <- create_parathaa_plot(V4V5_data)
 FL_par_plot <- create_parathaa_plot(FL_data_sens)
 
 
-(V1V2_par_plot + ggtitle("V1V2 Parathaa Specific")) + (V4V5_par_plot + ggtitle("V4V5 Parathaa Specific")) + 
+V1V2_dada_plot <- create_dada2_plot(V1V2_data)
+V4V5_dada_plot <- create_dada2_plot(V4V5_data)
+FL_dada_plot <- create_dada2_plot(FL_data_sens)
+
+
+
+par_plot <- (V1V2_par_plot + ggtitle("V1V2 Parathaa Specific")) + (V4V5_par_plot + ggtitle("V4V5 Parathaa Specific")) + 
 FL_par_plot + ggtitle("FL Parathaa Sensitive") + plot_layout(guides="collect")
+
+
+dada_plot <-  (V1V2_dada_plot + ggtitle("V1V2 NB-Multi")) + (V4V5_dada_plot + ggtitle("V4V5 NB-Multi")) + 
+  FL_dada_plot + ggtitle("FL NB (minboot=80)") + plot_layout(guides="collect")
+
+
+
+par_plot/dada_plot
+
+ggsave("../../multi_panel_fig3_supp.pdf", width=12, height=5)
+
+
+
+## calc total correct
+par_v1v2_m <- V1V2_par_plot$data %>% filter(`# of Parathaa Assignments` > 1)
+dada_v1v2_m <- V1V2_dada_plot$data %>% filter(`# of dada Assignments` > 1)
+table(par_v1v2_m$Flag.y)
+
+1-(178/(178+951))
+
+table(dada_v1v2_m$Flag.x)
+
+1-(80/(80+212))
+
+
+par_v4v5_m <- V4V5_par_plot$data %>% filter(`# of Parathaa Assignments` > 1)
+dada_v4v5_m <- V4V5_dada_plot$data %>% filter(`# of dada Assignments` > 1)
+
+table(par_v4v5_m$Flag.y)
+
+1-(513/(513+2210))
+
+table(dada_v4v5_m$Flag.x)
+1-(399/(399+1780))
+
+
+par_fl_m <- FL_par_plot$data %>% filter(`# of Parathaa Assignments` > 1)
+dada_fl_m <- FL_dada_plot$data %>% filter(`# of dada Assignments` > 1)
+
+table(par_fl_m$Flag.y)
+1-(282/(282+1219))
+
+
+table(dada_fl_m$Flag.x)
+1-4/18
 
 
